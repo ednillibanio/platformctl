@@ -1,0 +1,7 @@
+/.cache/
+/.tools/
+/bin/
+/vagrant/.vagrant/
+/vagrant/config.local.yaml
+*.exe
+*.test

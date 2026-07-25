@@ -1,0 +1,65 @@
+# frozen_string_literal: true
+
+require 'yaml'
+
+CONFIG_PATH = File.expand_path(ENV.fetch('PLATFORMCTL_VAGRANT_CONFIG', 'config.local.yaml'), __dir__)
+LOCAL_CONFIG = if File.file?(CONFIG_PATH)
+                 parsed = YAML.safe_load(File.read(CONFIG_PATH), permitted_classes: [], aliases: false)
+                 abort("#{CONFIG_PATH} must contain a YAML mapping.") unless parsed.nil? || parsed.is_a?(Hash)
+                 parsed || {}
+               else
+                 {}
+               end.freeze
+
+ALLOWED_CONFIG_KEYS = %w[box memory cpus provider ssh_port].freeze
+unknown_config_keys = LOCAL_CONFIG.keys.map(&:to_s) - ALLOWED_CONFIG_KEYS
+abort("Unknown keys in #{CONFIG_PATH}: #{unknown_config_keys.join(', ')}") unless unknown_config_keys.empty?
+
+config_value = lambda do |env_name, yaml_key, default|
+  ENV.fetch(env_name, LOCAL_CONFIG.fetch(yaml_key, default)).to_s
+end
+
+BOX = config_value.call('PLATFORMCTL_VAGRANT_BOX', 'box', 'bento/ubuntu-24.04')
+VM_MEMORY = Integer(config_value.call('PLATFORMCTL_VM_MEMORY', 'memory', 2048), 10)
+VM_CPUS = Integer(config_value.call('PLATFORMCTL_VM_CPUS', 'cpus', 2), 10)
+DEFAULT_PROVIDER = config_value.call('PLATFORMCTL_VAGRANT_PROVIDER', 'provider', 'vmware_desktop')
+SSH_PORT = Integer(config_value.call('PLATFORMCTL_TEST_SSH_PORT', 'ssh_port', 2266), 10)
+PROJECT_ROOT = File.expand_path('..', __dir__)
+
+abort('box must not be empty or contain newlines.') if BOX.empty? || BOX.match?(/[\r\n]/)
+abort('memory must be greater than zero.') unless VM_MEMORY.positive?
+abort('cpus must be greater than zero.') unless VM_CPUS.positive?
+abort('ssh_port must be between 1024 and 65535.') unless SSH_PORT.between?(1024, 65_535)
+abort("Unsupported provider '#{DEFAULT_PROVIDER}'. Use virtualbox or vmware_desktop.") unless
+  %w[virtualbox vmware_desktop].include?(DEFAULT_PROVIDER)
+
+ENV['VAGRANT_DEFAULT_PROVIDER'] ||= DEFAULT_PROVIDER
+
+Vagrant.configure('2') do |config|
+  config.vm.boot_timeout = 600
+
+  config.vm.define 'platformctl-test', primary: true do |machine|
+    machine.vm.box = BOX
+    machine.vm.hostname = 'platformctl-test.infra.lab'
+    machine.ssh.username = 'vagrant'
+    machine.vm.synced_folder '.', '/vagrant', disabled: true
+    machine.vm.synced_folder PROJECT_ROOT, '/home/vagrant/platformctl'
+    machine.vm.network 'forwarded_port', guest: 22, host: SSH_PORT,
+                       host_ip: '127.0.0.1', auto_correct: false, id: 'ssh'
+
+    machine.vm.provider 'virtualbox' do |provider|
+      provider.memory = VM_MEMORY
+      provider.cpus = VM_CPUS
+    end
+
+    machine.vm.provider 'vmware_desktop' do |provider|
+      provider.vmx['memsize'] = VM_MEMORY.to_s
+      provider.vmx['numvcpus'] = VM_CPUS.to_s
+    end
+
+    machine.vm.provision 'platformctl-test-suite',
+                         type: 'shell',
+                         privileged: false,
+                         path: 'scripts/provision-test-vm.sh'
+  end
+end

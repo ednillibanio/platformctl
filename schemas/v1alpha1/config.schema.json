@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platformctl.io/schemas/v1alpha1/config.schema.json",
+  "title": "platformctl configuration document",
+  "oneOf": [
+    { "$ref": "#/$defs/defaults" },
+    { "$ref": "#/$defs/environment" },
+    { "$ref": "#/$defs/profile" },
+    { "$ref": "#/$defs/service" },
+    { "$ref": "#/$defs/host" }
+  ],
+  "$defs": {
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+      }
+    },
+    "secretRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "env": { "type": "string", "minLength": 1 },
+        "file": { "type": "string", "minLength": 1 }
+      },
+      "oneOf": [
+        { "required": ["env"] },
+        { "required": ["file"] }
+      ]
+    },
+    "layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "values": { "type": "object" },
+        "credentials": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/secretRef" }
+        }
+      }
+    },
+    "header": {
+      "type": "object",
+      "required": ["apiVersion", "kind", "metadata", "spec"],
+      "properties": {
+        "apiVersion": { "const": "platformctl.io/v1alpha1" },
+        "metadata": { "$ref": "#/$defs/metadata" }
+      }
+    },
+    "defaults": {
+      "allOf": [
+        { "$ref": "#/$defs/header" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "apiVersion": true,
+            "kind": { "const": "Defaults" },
+            "metadata": true,
+            "spec": { "$ref": "#/$defs/layer" }
+          }
+        }
+      ]
+    },
+    "environment": {
+      "allOf": [
+        { "$ref": "#/$defs/header" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "apiVersion": true,
+            "kind": { "const": "Environment" },
+            "metadata": true,
+            "spec": { "$ref": "#/$defs/layer" }
+          }
+        }
+      ]
+    },
+    "profile": {
+      "allOf": [
+        { "$ref": "#/$defs/header" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "apiVersion": true,
+            "kind": { "const": "Profile" },
+            "metadata": true,
+            "spec": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "extends": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+                "values": { "type": "object" },
+                "credentials": {
+                  "type": "object",
+                  "additionalProperties": { "$ref": "#/$defs/secretRef" }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "port": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["port", "protocol"],
+      "properties": {
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+        "protocol": { "enum": ["tcp", "udp"] },
+        "source_hosts": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+        }
+      }
+    },
+    "service": {
+      "allOf": [
+        { "$ref": "#/$defs/header" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "apiVersion": true,
+            "kind": { "const": "Service" },
+            "metadata": true,
+            "spec": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "ports": { "type": "array", "items": { "$ref": "#/$defs/port" } },
+                "values": { "type": "object" },
+                "credentials": {
+                  "type": "object",
+                  "additionalProperties": { "$ref": "#/$defs/secretRef" }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "host": {
+      "allOf": [
+        { "$ref": "#/$defs/header" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "apiVersion": true,
+            "kind": { "const": "Host" },
+            "metadata": true,
+            "spec": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["profile"],
+              "properties": {
+                "profile": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+                "services": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+                },
+                "addresses": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": { "type": "string" }
+                },
+                "values": { "type": "object" },
+                "credentials": {
+                  "type": "object",
+                  "additionalProperties": { "$ref": "#/$defs/secretRef" }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

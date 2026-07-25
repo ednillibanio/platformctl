@@ -1,0 +1,9 @@
+apiVersion: platformctl.io/v1alpha1
+kind: Environment
+metadata:
+  name: lab
+spec:
+  values:
+    domain: lab.example.internal
+    logging:
+      level: debug

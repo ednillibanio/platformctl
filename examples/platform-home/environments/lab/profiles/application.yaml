@@ -1,0 +1,9 @@
+apiVersion: platformctl.io/v1alpha1
+kind: Profile
+metadata:
+  name: application
+spec:
+  extends: base
+  values:
+    role: application
+    workers: 2

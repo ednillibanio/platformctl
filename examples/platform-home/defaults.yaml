@@ -1,0 +1,12 @@
+apiVersion: platformctl.io/v1alpha1
+kind: Defaults
+metadata:
+  name: defaults
+spec:
+  values:
+    locale: en_US.UTF-8
+    logging:
+      level: info
+  credentials:
+    automation-token:
+      env: PLATFORM_AUTOMATION_TOKEN
