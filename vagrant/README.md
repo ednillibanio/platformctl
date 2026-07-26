@@ -69,3 +69,8 @@ variables override local YAML:
 
 Run `tests/test-vagrantfile-contract.sh` for static checks that do not require
 Ruby, Vagrant, or a provider.
+
+This test VM intentionally validates committed examples rather than private
+operator configuration. To expose a live `PLATFORMCTL_HOME` to an automation
+or service controller, use the separate
+[Vagrant controller integration guide](../docs/vagrant-controller-integration.md).

@@ -10,6 +10,8 @@
 - Linux and Windows development bootstrap with pinned Go checksums.
 - Unit, integration, security, example, and cross-build coverage.
 - Standalone disposable Vagrant test VM contract.
+- macOS development bootstrap for Intel and Apple Silicon.
+- Live host configuration mount guide for Vagrant controllers.
 
 ## Current validation
 
