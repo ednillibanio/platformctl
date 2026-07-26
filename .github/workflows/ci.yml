@@ -11,7 +11,7 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -20,14 +20,14 @@ jobs:
           go-version: "1.26.x"
           cache: true
       - name: Bootstrap
-        if: runner.os == 'Linux'
+        if: runner.os != 'Windows'
         run: ./scripts/bootstrap-dev.sh
       - name: Bootstrap
         if: runner.os == 'Windows'
         shell: pwsh
         run: ./scripts/bootstrap-dev.ps1
       - name: Vet and test
-        if: runner.os == 'Linux'
+        if: runner.os != 'Windows'
         run: |
           ./scripts/go.sh vet ./...
           ./scripts/go.sh test ./...

@@ -9,6 +9,7 @@ func TestResolveFor(t *testing.T) {
 	}{
 		{name: "linux default", goos: "linux", base: "/home/operator/.config", want: "/home/operator/.config/platformctl"},
 		{name: "windows default", goos: "windows", base: `C:\Users\operator\AppData\Roaming`, want: `C:\Users\operator\AppData\Roaming\platformctl`},
+		{name: "macos default", goos: "darwin", base: "/Users/operator/Library/Application Support", want: "/Users/operator/Library/Application Support/platformctl"},
 		{name: "linux override", goos: "linux", override: "/srv/platform", base: "/ignored", want: "/srv/platform"},
 		{name: "windows override", goos: "windows", override: `D:\platform`, base: `C:\ignored`, want: `D:\platform`},
 		{name: "relative rejected", goos: "linux", override: "relative", base: "/ignored", wantErr: true},

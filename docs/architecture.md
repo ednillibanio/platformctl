@@ -33,6 +33,21 @@ The Vagrant VM mounts this checkout as source but places its Go toolchain,
 caches, binary, status, and rendered artifacts in the VM user's home. It does
 not consume the controller or lifecycle of a service-provisioning repository.
 
+Service and automation controllers are separate consumers. In lab workflows,
+they may mount the operator's live `PLATFORMCTL_HOME` directly at
+`/home/vagrant/.config/platformctl`:
+
+```text
+operator PLATFORMCTL_HOME
+├── infra-gitops controller, including Packer
+├── provision-glpi controller
+└── other automation or provisioning controllers
+```
+
+The direct mount is a lab transport, not an ownership transfer. The host
+remains authoritative and generated artifacts stay outside the mount. See
+[Vagrant controller integration](vagrant-controller-integration.md).
+
 ## Security boundary
 
 Operational values live outside Git in the operator's configuration home.

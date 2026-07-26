@@ -9,7 +9,7 @@ Vagrant, Ansible, Terraform, govc, glpictl, or any service provisioner.
 
 ## Development setup
 
-Linux:
+Linux and macOS:
 
 ```bash
 ./scripts/bootstrap-dev.sh
@@ -42,11 +42,15 @@ platformctl render --env lab --format json
 
 `PLATFORMCTL_HOME` overrides the configuration root. Without it, platformctl
 uses the operating system's user configuration directory: normally
-`$XDG_CONFIG_HOME/platformctl` or `~/.config/platformctl` on Linux and
-`%AppData%\platformctl` on Windows.
+`$XDG_CONFIG_HOME/platformctl` or `~/.config/platformctl` on Linux,
+`%AppData%\platformctl` on Windows, and
+`~/Library/Application Support/platformctl` on macOS.
 
-See [Architecture](docs/architecture.md), [Configuration reference](docs/configuration.md),
-the complete [example](examples/platform-home/), and [implementation progress](docs/progress.md).
+See [Installation](docs/installation.md), [Architecture](docs/architecture.md),
+[Configuration reference](docs/configuration.md), the
+[Vagrant controller integration guide](docs/vagrant-controller-integration.md),
+the complete [example](examples/platform-home/), and
+[implementation progress](docs/progress.md).
 
 ## Disposable Linux test VM
 

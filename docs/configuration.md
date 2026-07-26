@@ -61,3 +61,16 @@ Initialization is idempotent when managed files already contain the expected
 scaffold. Divergent managed files are preserved and produce an error unless
 `--force` is supplied. Force replaces only the known scaffold file and never
 deletes additional operator files.
+
+## Vagrant controllers
+
+For lab use, mount the host configuration live at the default Linux location:
+
+```text
+/home/vagrant/.config/platformctl
+```
+
+Platformctl discovers it automatically when running as `vagrant`. Initialize
+and edit the tree only on the host. See the
+[Vagrant controller integration guide](vagrant-controller-integration.md) for
+copy-and-paste snippets covering Windows, Linux, and macOS.
