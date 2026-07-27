@@ -1,0 +1,43 @@
+name: Melhoria / Feature
+description: Pedido de melhoria pontual que ainda não virou uma iteração formal
+title: "[melhoria] "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: modulo
+    attributes:
+      label: Módulo/área
+      options:
+        - sshd
+        - php
+        - apache
+        - mariadb
+        - crowdsec
+        - fail2ban
+        - packer
+        - terraform
+        - ansible
+        - vagrant/lab
+        - novo módulo
+        - outro
+    validations:
+      required: true
+  - type: textarea
+    id: motivacao
+    attributes:
+      label: Motivação
+      description: Por que isso é necessário? Qual problema resolve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposta
+    attributes:
+      label: Proposta
+    validations:
+      required: true
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas consideradas
+    validations:
+      required: false
