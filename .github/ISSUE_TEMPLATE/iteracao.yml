@@ -1,0 +1,45 @@
+name: Iteração
+description: Acompanhamento de uma iterations/NNN-topic/ (uma issue por iteração, não por etapa)
+title: "[NNN] "
+labels: ["iteration"]
+assignees:
+  - ednillibanio
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Uma issue por `iterations/NNN-topic/`, não por etapa (`steps/NN-*.md`).
+        O detalhe fica no repo (`README.md` + `steps/*.md`); esta issue é só o
+        espelho externo pra acompanhamento/relatório mensal.
+  - type: input
+    id: pasta
+    attributes:
+      label: Pasta da iteração
+      description: Caminho completo em iterations/
+      placeholder: iterations/0NN-topico/
+    validations:
+      required: true
+  - type: textarea
+    id: objetivo
+    attributes:
+      label: Objetivo
+      description: 1-2 frases — o que essa iteração entrega.
+    validations:
+      required: true
+  - type: textarea
+    id: etapas
+    attributes:
+      label: Etapas
+      description: Espelha a tabela "Etapas" do README.md da iteração. Marque [x] conforme forem concluídas.
+      value: |
+        - [ ] Etapa 01 —
+        - [ ] Etapa 02 —
+    validations:
+      required: true
+  - type: input
+    id: branch
+    attributes:
+      label: Branch
+      placeholder: feature/<modulo>-<mudanca>
+    validations:
+      required: false
