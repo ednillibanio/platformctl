@@ -23,15 +23,19 @@ must be explicit adapters around the stable rendered configuration model.
 - `internal/merge` implements immutable layer composition.
 - `internal/render` creates deterministic YAML or JSON.
 - `internal/schema` exposes the public schemas embedded from `schemas/`.
-- `vagrant` owns the disposable external Linux validation environment.
+- `vagrant` and `container` each own a disposable external Linux validation
+  environment (VM-based and container-based, respectively). See
+  [Lab environments](lab-environments.md) for how they compare.
 
 Configuration flows through strict parsing, semantic validation, ordered merge,
 reference resolution, and deterministic encoding. Rendering stops immediately
 when validation fails.
 
-The Vagrant VM mounts this checkout as source but places its Go toolchain,
-caches, binary, status, and rendered artifacts in the VM user's home. It does
-not consume the controller or lifecycle of a service-provisioning repository.
+Each disposable lab mounts this checkout as source but keeps its Go
+toolchain, caches, binary, status, and rendered artifacts outside the
+checkout — under the VM user's home for `vagrant`, under a container-local
+volume for `container`. Neither consumes the controller or lifecycle of a
+service-provisioning repository.
 
 Service and automation controllers are separate consumers. In lab workflows,
 they may mount the operator's live `PLATFORMCTL_HOME` directly at
@@ -39,13 +43,16 @@ they may mount the operator's live `PLATFORMCTL_HOME` directly at
 
 ```text
 operator PLATFORMCTL_HOME
-├── infra-gitops controller, including Packer
-├── provision-glpi controller
+├── <service controller>
+├── <automation controller>
 └── other automation or provisioning controllers
 ```
 
 The direct mount is a lab transport, not an ownership transfer. The host
-remains authoritative and generated artifacts stay outside the mount. See
+remains authoritative and generated artifacts stay outside the mount. This
+live-mount pattern is specific to Vagrant's `synced_folder`; `container` is a
+standalone validation environment only and does not currently offer an
+equivalent live-mount target. See
 [Vagrant controller integration](vagrant-controller-integration.md).
 
 ## Security boundary

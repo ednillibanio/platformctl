@@ -3,5 +3,6 @@
 /bin/
 /vagrant/.vagrant/
 /vagrant/config.local.yaml
+/container/.env
 *.exe
 *.test

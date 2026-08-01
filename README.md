@@ -52,10 +52,13 @@ See [Installation](docs/installation.md), [Architecture](docs/architecture.md),
 the complete [example](examples/platform-home/), and
 [implementation progress](docs/progress.md).
 
-## Disposable Linux test VM
+## Disposable lab environments
 
-The repository owns a standalone Vagrant test VM; it does not depend on
-`provision-glpi` or any other service repository:
+The repository owns two standalone, disposable Linux lab environments;
+neither depends on `provision-glpi` or any other service repository. See
+[Lab environments](docs/lab-environments.md) for the comparison.
+
+### Vagrant
 
 ```bash
 cd vagrant
@@ -66,3 +69,15 @@ vagrant up
 
 See the [Vagrant lab guide](vagrant/README.md) for providers, isolation,
 artifacts, diagnostics, and cleanup.
+
+### Docker
+
+```bash
+cd container
+cp .env.example .env
+docker compose config
+docker compose up --build
+```
+
+See the [container lab guide](container/README.md) for isolation, artifacts,
+diagnostics, and cleanup. Works natively on Apple Silicon (`linux/arm64`).

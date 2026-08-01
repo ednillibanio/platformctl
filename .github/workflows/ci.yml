@@ -39,3 +39,22 @@ jobs:
           ./scripts/go.ps1 vet ./...
           ./scripts/go.ps1 test ./...
           ./scripts/go.ps1 build ./cmd/platformctl
+
+  container-lab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Contract tests
+        run: |
+          bash vagrant/tests/test-vagrantfile-contract.sh
+          bash container/tests/test-compose-contract.sh
+      - name: Build and run the container lab
+        working-directory: container
+        run: ./lab.sh up
+      - name: Inspect status
+        working-directory: container
+        run: ./lab.sh status
+      - name: Clean up
+        if: always()
+        working-directory: container
+        run: ./lab.sh destroy
