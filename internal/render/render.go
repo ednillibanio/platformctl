@@ -11,6 +11,32 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// RedactedValue replaces inline credential values when Redact is applied.
+const RedactedValue = "<redacted>"
+
+// Redact returns a copy of env with every inline credential value (SecretRef.Value)
+// replaced by RedactedValue. Env and file references are untouched -- they
+// only point at where a secret lives and never contain the secret itself.
+func Redact(env config.RenderedEnvironment) config.RenderedEnvironment {
+	redacted := env
+	redacted.Hosts = make([]config.RenderedHost, len(env.Hosts))
+	for i, host := range env.Hosts {
+		redacted.Hosts[i] = host
+		if len(host.Config.Credentials) == 0 {
+			continue
+		}
+		credentials := make(map[string]config.SecretRef, len(host.Config.Credentials))
+		for name, ref := range host.Config.Credentials {
+			if ref.Value != "" {
+				ref.Value = RedactedValue
+			}
+			credentials[name] = ref
+		}
+		redacted.Hosts[i].Config.Credentials = credentials
+	}
+	return redacted
+}
+
 func Resolve(bundle config.Bundle) (config.RenderedEnvironment, error) {
 	if err := validation.Bundle(bundle); err != nil {
 		return config.RenderedEnvironment{}, err

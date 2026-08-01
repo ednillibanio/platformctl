@@ -126,8 +126,14 @@ func checkSecrets(owner string, refs map[string]config.SecretRef, problems *[]st
 		if !config.ValidIdentifier(name) {
 			*problems = append(*problems, fmt.Sprintf("%s: invalid credential name %q", owner, name))
 		}
-		if (ref.Env == "") == (ref.File == "") {
-			*problems = append(*problems, fmt.Sprintf("%s: credential %q must set exactly one of env or file", owner, name))
+		set := 0
+		for _, value := range []string{ref.Env, ref.File, ref.Value} {
+			if value != "" {
+				set++
+			}
+		}
+		if set != 1 {
+			*problems = append(*problems, fmt.Sprintf("%s: credential %q must set exactly one of env, file, or value", owner, name))
 		}
 		if ref.Env != "" && !environmentVariablePattern.MatchString(ref.Env) {
 			*problems = append(*problems, fmt.Sprintf("%s: credential %q has invalid environment variable %q", owner, name, ref.Env))
