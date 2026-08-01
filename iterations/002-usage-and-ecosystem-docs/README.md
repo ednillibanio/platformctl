@@ -1,6 +1,6 @@
 # Iteração: Manual de uso e panorama entre repositórios
 
-Status: `todo`
+Status: `doing`
 
 ## Objetivo
 
@@ -32,7 +32,7 @@ Fora de escopo:
 
 | Etapa | Status | Arquivo |
 | --- | --- | --- |
-| 01 | `todo` | `steps/01-ecosystem-doc.md` |
+| 01 | `done` | `steps/01-ecosystem-doc.md` |
 | 02 | `todo` | `steps/02-usage-doc.md` |
 
 ## Critérios de Fechamento

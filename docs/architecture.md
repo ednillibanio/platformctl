@@ -12,6 +12,8 @@ separate from:
 
 The MVP does not call or clone any of those repositories. Future integrations
 must be explicit adapters around the stable rendered configuration model.
+See [Ecosystem](ecosystem.md) for how these repositories hand off to each
+other and in what phase each one acts.
 
 ## Components
 

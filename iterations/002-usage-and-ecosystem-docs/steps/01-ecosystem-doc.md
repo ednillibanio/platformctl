@@ -1,6 +1,6 @@
 # Etapa: docs/ecosystem.md — panorama entre repositórios
 
-Status: `todo`
+Status: `done`
 
 ## Objetivo
 
@@ -46,12 +46,25 @@ grep -rn '](.*\.md' docs/ecosystem.md README.md docs/architecture.md
 
 ## Resultado
 
-Preencher ao concluir a etapa.
+Concluído. `docs/ecosystem.md` criado com a tabela das quatro peças
+(catálogo, lib de automação, platformctl, provision-*), um diagrama
+mermaid do fluxo de handoff, uma seção "Why platformctl exists as a
+separate piece" (o problema do `vars.sh` duplicado por repo) e uma seção
+"What platformctl is not". Links cruzados adicionados em
+`docs/architecture.md` e `README.md`.
 
 ## Evidências
 
-Registrar comandos executados, saídas relevantes e arquivos alterados.
+- Arquivos alterados: `docs/ecosystem.md` (novo), `docs/architecture.md`,
+  `README.md`.
+- Checagem de links relativos: todos resolvem, exceto o link pra
+  `docs/usage.md` dentro de `docs/ecosystem.md` — esperado, é a etapa 02
+  desta mesma iteração, ainda não criada.
 
 ## Pendências
 
-Registrar riscos, bloqueios ou próximos passos.
+- `docs/usage.md` ainda não existe — etapa 02 resolve o link pendente.
+- README.md ainda mostra `docker compose ...` cru na seção "Docker" em vez
+  de `./lab.sh ...` (ficou pra trás depois que criamos `container/lab.sh`
+  na iteração anterior) — fora do escopo desta etapa, registrar como
+  possível item futuro.
