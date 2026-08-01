@@ -21,3 +21,4 @@
 ## O Que Ficou Pendente / Riscos
 
 <!-- Gaps conhecidos, follow-ups, ou riscos de rollout. "Nenhum" se não houver. -->
+
