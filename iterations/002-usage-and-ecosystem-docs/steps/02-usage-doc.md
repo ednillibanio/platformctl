@@ -1,6 +1,6 @@
 # Etapa: docs/usage.md — manual de uso
 
-Status: `todo`
+Status: `doing`
 
 ## Objetivo
 
