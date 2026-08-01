@@ -74,3 +74,8 @@ This test VM intentionally validates committed examples rather than private
 operator configuration. To expose a live `PLATFORMCTL_HOME` to an automation
 or service controller, use the separate
 [Vagrant controller integration guide](../docs/vagrant-controller-integration.md).
+
+For an Apple Silicon-compatible, Docker-based alternative with the same
+build→vet→test→render contract, see the
+[container lab](../container/README.md) or the
+[lab environments comparison](../docs/lab-environments.md).

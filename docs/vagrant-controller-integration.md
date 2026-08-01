@@ -161,15 +161,22 @@ Edit a non-secret YAML value on the host and run validation again. The updated
 value is immediately visible; `vagrant provision` is not required. Use
 `vagrant reload` only when the Vagrantfile or mount definition changes.
 
-## provision-glpi placement
+## Placement in a service controller repository
 
-In `provision-glpi/vagrant/Vagrantfile`, add the host-path block once near its
-configuration constants. Add the synced-folder block only inside the existing
-`glpi-controller` machine definition.
+Add the host-path block once near the target Vagrantfile's configuration
+constants. Add the synced-folder block only inside the controller machine
+definition(s) that consume platform configuration.
 
 Do not add it to application or database targets. Controllers consume platform
 configuration; service targets receive only values applied by their
 provisioning workflow.
+
+### Example: provision-glpi
+
+One illustrative consumer, not part of this guide's own contract: in
+`provision-glpi/vagrant/Vagrantfile`, add the host-path block once near its
+configuration constants, and the synced-folder block only inside the existing
+`glpi-controller` machine definition.
 
 ## Operational rules
 

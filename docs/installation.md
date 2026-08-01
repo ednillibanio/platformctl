@@ -71,11 +71,15 @@ Open a new terminal afterward. The default configuration location is:
 %AppData%\platformctl
 ```
 
-For Vagrant integration, expose the location explicitly:
+To share this location with a disposable lab controller, expose it
+explicitly:
 
 ```powershell
 $env:PLATFORMCTL_HOME = Join-Path $env:APPDATA "platformctl"
 ```
+
+See [Lab environments](lab-environments.md) for the available lab
+mechanisms.
 
 ## macOS
 
@@ -106,11 +110,15 @@ The default macOS configuration location follows `os.UserConfigDir`:
 ~/Library/Application Support/platformctl
 ```
 
-For Vagrant integration:
+To share this location with a disposable lab controller, expose it
+explicitly:
 
 ```bash
 export PLATFORMCTL_HOME="${HOME}/Library/Application Support/platformctl"
 ```
+
+See [Lab environments](lab-environments.md) for the available lab
+mechanisms.
 
 Add `~/.local/bin` and `PLATFORMCTL_HOME` to the preferred shell profile when
 they should persist across terminal sessions.
@@ -128,8 +136,10 @@ $env:PLATFORMCTL_HOME = "D:\platformctl-config"
 platformctl validate --env lab
 ```
 
-The override is useful when multiple Vagrant controllers share one operator
-configuration tree.
+The override is useful when multiple lab or automation controllers share one
+operator configuration tree. See
+[Vagrant controller integration](vagrant-controller-integration.md) for the
+live-mount recipe.
 
 ## Updating during the foundation phase
 
