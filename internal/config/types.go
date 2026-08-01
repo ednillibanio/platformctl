@@ -7,8 +7,9 @@ type Metadata struct {
 }
 
 type SecretRef struct {
-	Env  string `yaml:"env,omitempty" json:"env,omitempty"`
-	File string `yaml:"file,omitempty" json:"file,omitempty"`
+	Env   string `yaml:"env,omitempty" json:"env,omitempty"`
+	File  string `yaml:"file,omitempty" json:"file,omitempty"`
+	Value string `yaml:"value,omitempty" json:"value,omitempty"`
 }
 
 type LayerSpec struct {

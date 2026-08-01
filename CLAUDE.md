@@ -59,7 +59,7 @@ sequence, and rendering stops immediately if any stage fails:
    `environment init` templating and enforces `0700`/`0600` permissions.
 2. **`internal/validation`** — semantic and cross-document checks over a
    `Bundle`: apiVersion/kind headers, credential shape (exactly one of
-   `env`/`file`), profile inheritance cycles, port ranges, and every
+   `env`/`file`/`value`), profile inheritance cycles, port ranges, and every
    cross-reference (host→profile, host→service, service port→source host,
    source host must have addresses). All problems are collected and returned
    together, sorted, rather than failing on the first one.
@@ -72,7 +72,10 @@ sequence, and rendering stops immediately if any stage fails:
    `extends`) → each attached service → host**, for both `values` and
    `credentials` (credentials merge is a shallow key overwrite, not deep).
    Service ports resolve `source_hosts` into deduplicated, sorted address
-   lists. `Encode` serializes to YAML or JSON.
+   lists. `Encode` serializes to YAML or JSON. `Redact` masks inline
+   `SecretRef.Value` credentials (`<redacted>`); the CLI applies it by
+   default and skips it only with `render --reveal-secrets`. `env`/`file`
+   references are never masked since they hold no secret themselves.
 5. **`internal/schema`** — exposes the JSON schemas embedded from
    `schemas/v1alpha1/` (via `schemas/embed.go`) for external validation of the
    config and rendered-environment shapes; parsing/validation logic itself

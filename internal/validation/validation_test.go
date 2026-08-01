@@ -36,6 +36,11 @@ func TestValidationFailures(t *testing.T) {
 			h.Spec.Credentials["password"] = config.SecretRef{}
 			b.Hosts["app"] = h
 		}, "must set exactly one"},
+		{"credential with two references set", func(b *config.Bundle) {
+			h := b.Hosts["app"]
+			h.Spec.Credentials["password"] = config.SecretRef{Env: "PASSWORD", Value: "also-set"}
+			b.Hosts["app"] = h
+		}, "must set exactly one"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -46,6 +51,16 @@ func TestValidationFailures(t *testing.T) {
 				t.Fatalf("expected %q, got %v", test.want, err)
 			}
 		})
+	}
+}
+
+func TestValidationAcceptsInlineValueCredential(t *testing.T) {
+	bundle := validBundle()
+	h := bundle.Hosts["app"]
+	h.Spec.Credentials["build-password"] = config.SecretRef{Value: "s0meSecret"}
+	bundle.Hosts["app"] = h
+	if err := Bundle(bundle); err != nil {
+		t.Fatalf("expected inline value credential to be valid, got %v", err)
 	}
 }
 

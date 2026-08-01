@@ -109,6 +109,37 @@ func TestDeterministicYAMLAndValidJSONWithoutSecretExpansion(t *testing.T) {
 	}
 }
 
+func TestRedactMasksInlineValuesOnly(t *testing.T) {
+	env := config.RenderedEnvironment{
+		Hosts: []config.RenderedHost{
+			{
+				Name: "app",
+				Config: config.RenderedConfig{
+					Credentials: map[string]config.SecretRef{
+						"build-password": {Value: "s0meSecret"},
+						"api-token":      {Env: "PLATFORM_API_TOKEN"},
+						"ssh-key":        {File: "credentials/id_ed25519"},
+					},
+				},
+			},
+		},
+	}
+	redacted := Redact(env)
+	got := redacted.Hosts[0].Config.Credentials
+	if got["build-password"].Value != RedactedValue {
+		t.Fatalf("expected inline value to be redacted, got %#v", got["build-password"])
+	}
+	if got["api-token"].Env != "PLATFORM_API_TOKEN" {
+		t.Fatalf("env reference should be untouched, got %#v", got["api-token"])
+	}
+	if got["ssh-key"].File != "credentials/id_ed25519" {
+		t.Fatalf("file reference should be untouched, got %#v", got["ssh-key"])
+	}
+	if env.Hosts[0].Config.Credentials["build-password"].Value != "s0meSecret" {
+		t.Fatal("Redact must not mutate its input")
+	}
+}
+
 func TestUnsupportedFormat(t *testing.T) {
 	if _, err := Encode(config.RenderedEnvironment{}, "toml"); err == nil {
 		t.Fatal("expected unsupported format error")

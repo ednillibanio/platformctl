@@ -140,18 +140,30 @@ changed field.
 
 ## Credentials
 
-Credentials are a map of names to exactly one reference:
+Credentials are a map of names to exactly one of three forms:
 
 ```yaml
 credentials:
   api-token:
-    env: PLATFORM_API_TOKEN
+    env: PLATFORM_API_TOKEN          # read from this environment variable
   ssh-key:
-    file: credentials/id_ed25519
+    file: credentials/id_ed25519     # read from this file
+  build-password:
+    value: s0meGeneratedSecret       # the secret itself, stored inline
 ```
 
-Validation checks only the reference shape. Render output preserves the
-reference and never reads the environment variable or file.
+`env` and `file` are references: they only point at where a secret lives, and
+platformctl never reads or prints the value they point to. `value` is
+different — it stores the secret itself, inside your local
+`PLATFORMCTL_HOME` tree (which lives outside git). Use it when a secret has
+no other natural home, for example a generated build password; prefer `env`
+or `file` when the secret is already managed elsewhere (a secrets manager, an
+existing key file).
+
+Because `value` genuinely contains a secret, `platformctl render` redacts it
+by default — the field is printed as `<redacted>`. Pass `--reveal-secrets` to
+include the real value in the output. `env` and `file` references are never
+redacted, since they never contain the secret in the first place.
 
 ## Initialization behavior
 

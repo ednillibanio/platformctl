@@ -6,7 +6,9 @@
 - Portable operator home and idempotent scaffolding.
 - Strict YAML parsing, typed schemas, semantic validation, and reference checks.
 - Ordered layer resolution, profile inheritance, and host-specific overrides.
-- Deterministic YAML and JSON rendering without credential expansion.
+- Deterministic YAML and JSON rendering; `env`/`file` credential references
+  are never expanded, and inline `value` credentials are redacted by default
+  (`render --reveal-secrets` to include them).
 - Linux and Windows development bootstrap with pinned Go checksums.
 - Unit, integration, security, example, and cross-build coverage.
 - Standalone disposable Vagrant test VM contract.

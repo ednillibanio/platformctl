@@ -100,6 +100,7 @@ func validateCommand(stdout io.Writer) *cobra.Command {
 
 func renderCommand(stdout io.Writer) *cobra.Command {
 	var env, format string
+	var revealSecrets bool
 	command := &cobra.Command{
 		Use:   "render",
 		Short: "Render an effective environment",
@@ -113,6 +114,9 @@ func renderCommand(stdout io.Writer) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if !revealSecrets {
+				resolved = render.Redact(resolved)
+			}
 			output, err := render.Encode(resolved, format)
 			if err != nil {
 				return err
@@ -123,6 +127,7 @@ func renderCommand(stdout io.Writer) *cobra.Command {
 	}
 	command.Flags().StringVar(&env, "env", "", "environment name (required)")
 	command.Flags().StringVar(&format, "format", "yaml", "output format: yaml or json")
+	command.Flags().BoolVar(&revealSecrets, "reveal-secrets", false, "include inline credential values instead of redacting them")
 	_ = command.MarkFlagRequired("env")
 	return command
 }
