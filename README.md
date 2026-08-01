@@ -47,8 +47,8 @@ uses the operating system's user configuration directory: normally
 `~/Library/Application Support/platformctl` on macOS.
 
 See [Installation](docs/installation.md), [Architecture](docs/architecture.md),
-[Configuration reference](docs/configuration.md), the
-[Vagrant controller integration guide](docs/vagrant-controller-integration.md),
+[Ecosystem](docs/ecosystem.md), [Configuration reference](docs/configuration.md),
+the [Vagrant controller integration guide](docs/vagrant-controller-integration.md),
 the complete [example](examples/platform-home/), and
 [implementation progress](docs/progress.md).
 
