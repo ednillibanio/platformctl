@@ -1,0 +1,19 @@
+services:
+  platformctl-lab:
+    build:
+      context: .
+      args:
+        BASE_IMAGE: ${PLATFORMCTL_LAB_BASE_IMAGE:-ubuntu:24.04}
+    image: platformctl-lab:local
+    environment:
+      PLATFORMCTL_PROJECT_ROOT: /workspace
+      PLATFORMCTL_DEV_ROOT: /home/lab/.local/share/platformctl-dev
+      PLATFORMCTL_LAB_STATE_DIR: /home/lab/.local/state/platformctl-lab
+    volumes:
+      - ..:/workspace:ro
+      - lab-home:/home/lab
+    cpus: ${PLATFORMCTL_LAB_CPUS:-2}
+    mem_limit: ${PLATFORMCTL_LAB_MEMORY:-2g}
+
+volumes:
+  lab-home:
