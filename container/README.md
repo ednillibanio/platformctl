@@ -21,13 +21,21 @@ clone adjacent repositories or receive host credentials.
 ```bash
 cd container
 cp .env.example .env
-docker compose config
-docker compose up --build
+./lab.sh up
 ```
 
-Use the standalone `docker-compose` binary in place of `docker compose` if
-the Compose CLI plugin is not installed; both read the same
-`docker-compose.yml`.
+`lab.sh` wraps `docker compose` (falling back to the standalone
+`docker-compose` binary automatically if the Compose CLI plugin isn't
+installed) with Vagrant-like lifecycle commands — every command is
+repeatable and idempotent:
+
+| Command | Equivalent to |
+| --- | --- |
+| `./lab.sh up` | `vagrant up` |
+| `./lab.sh status` | inspect the persisted status |
+| `./lab.sh render` | print the rendered YAML |
+| `./lab.sh ssh` | `vagrant ssh` (interactive shell) |
+| `./lab.sh destroy` | `vagrant destroy -f` |
 
 Provisioning performs the same six steps as the Vagrant lab, via the shared
 script:
@@ -55,29 +63,36 @@ volume `lab-home`, mounted at `/home/lab` — never in the mounted checkout:
 Inspect the result:
 
 ```bash
-docker compose run --rm --entrypoint cat platformctl-lab /home/lab/.local/state/platformctl-lab/status
-docker compose run --rm --entrypoint cat platformctl-lab /home/lab/.local/share/platformctl-dev/rendered/lab.yaml
+./lab.sh status
+./lab.sh render
 ```
 
-Re-run provisioning with `docker compose up --build`; the `lab-home` volume
-persists, so the Go bootstrap stays idempotent. Destroy the disposable lab,
-including its volume, with:
+Or open a shell inside the lab, same as `vagrant ssh`:
 
 ```bash
-docker compose down -v
+./lab.sh ssh
+```
+
+Re-run provisioning with `./lab.sh up`; the `lab-home` volume persists, so
+the Go bootstrap stays idempotent. Destroy the disposable lab, including its
+volume, with:
+
+```bash
+./lab.sh destroy
 ```
 
 Operator configuration outside this lab is unaffected.
 
 ## Command mapping
 
-| Vagrant | Container |
-| --- | --- |
-| `vagrant validate` | `docker compose config` |
-| `vagrant up` | `docker compose up --build` |
-| `vagrant provision` | `docker compose up --build` (re-run; volume persists) |
-| `vagrant ssh -c "cat ..."` | `docker compose run --rm --entrypoint cat platformctl-lab <path>` |
-| `vagrant destroy -f` | `docker compose down -v` |
+| Vagrant | `lab.sh` | Raw `docker compose` |
+| --- | --- | --- |
+| `vagrant validate` | — | `docker compose config` |
+| `vagrant up` | `./lab.sh up` | `docker compose up --build --exit-code-from platformctl-lab` |
+| `vagrant provision` | `./lab.sh up` (re-run; volume persists) | same as above |
+| `vagrant ssh -c "cat ..."` | `./lab.sh status` / `./lab.sh render` | `docker compose run --rm --entrypoint cat platformctl-lab <path>` |
+| `vagrant ssh` | `./lab.sh ssh` | `docker compose run --rm --entrypoint bash platformctl-lab` |
+| `vagrant destroy -f` | `./lab.sh destroy` | `docker compose down -v` |
 
 ## Configuration
 
