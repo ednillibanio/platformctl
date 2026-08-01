@@ -1,6 +1,6 @@
 # Iteração: Manual de uso e panorama entre repositórios
 
-Status: `doing`
+Status: `done`
 
 ## Objetivo
 
@@ -33,7 +33,7 @@ Fora de escopo:
 | Etapa | Status | Arquivo |
 | --- | --- | --- |
 | 01 | `done` | `steps/01-ecosystem-doc.md` |
-| 02 | `todo` | `steps/02-usage-doc.md` |
+| 02 | `done` | `steps/02-usage-doc.md` |
 
 ## Critérios de Fechamento
 
@@ -49,4 +49,7 @@ Fora de escopo:
 
 ## Resultado
 
-Pendente.
+Concluído. `docs/ecosystem.md` e `docs/usage.md` criados e validados
+(exemplo guiado testado de verdade no `container/lab.sh`). Pendência
+registrada, fora do escopo: `README.md` ainda usa `docker compose` cru em
+vez de `./lab.sh` na seção Docker. Falta abrir e integrar o PR pra `lab`.

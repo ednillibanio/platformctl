@@ -59,6 +59,10 @@ spec:
     role: database
 ```
 
+`extends` must name a profile that already exists in the same environment
+(here, a separate `profiles/base.yaml` with `kind: Profile`,
+`metadata.name: base`) — `validate` rejects a missing or cyclic parent.
+
 ### Service — reusable values (and, optionally, ports) any host can attach to
 
 ```yaml
@@ -157,7 +161,10 @@ config:
   credentials:
     monitoring-agent-psk:
       value: <redacted>
-ports: []
+ports:
+  - service: monitoring
+    port: 10050
+    protocol: tcp
 ```
 
 Nothing provisions or applies this output. It's meant to be consumed by

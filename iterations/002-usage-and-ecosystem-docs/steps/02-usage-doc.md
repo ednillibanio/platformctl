@@ -1,6 +1,6 @@
 # Etapa: docs/usage.md — manual de uso
 
-Status: `doing`
+Status: `done`
 
 ## Objetivo
 
@@ -46,12 +46,40 @@ cd container && ./lab.sh ssh
 
 ## Resultado
 
-Preencher ao concluir a etapa.
+Concluído. `docs/usage.md` criado (init → autoria manual de cada tipo de
+documento → como se conectam → credenciais → validate/render →
+tabela de campos por tipo). Exemplo guiado (host `db1`, profile
+`database extends base`, service `monitoring` com porta, credencial
+`monitoring-agent-psk` como `value`) validado de verdade dentro do
+container. Um erro real encontrado e corrigido: a saída de exemplo mostrava
+`ports: []`, mas o service tem porta declarada — corrigido pra bater com o
+render real.
 
 ## Evidências
 
-Registrar comandos executados, saídas relevantes e arquivos alterados.
+Dependência descoberta e resolvida antes desta etapa: a branch tinha sido
+criada a partir de `lab` antes do PR #11 (valor inline em credentials)
+mergear, então o exemplo com `credentials.<nome>.value` não validava ainda.
+PR #11 revisado e mergeado em `lab` (squash: merge commit), issue #9
+fechado manualmente, branch rebaseada em `origin/lab` atualizado.
+
+Comandos executados dentro do `container/lab.sh`:
+
+```
+platformctl init
+platformctl environment init prod
+platformctl validate --env prod        # "Environment "prod" is valid"
+platformctl render --env prod          # credentials.monitoring-agent-psk.value: <redacted>
+platformctl render --env prod --reveal-secrets   # mostra o valor real
+```
+
+Saída conferida linha a linha contra o que está documentado em
+`docs/usage.md` — bate exatamente, após a correção do `ports`.
+
+Checagem de links relativos em `docs/`+`README.md`: todos resolvem.
 
 ## Pendências
 
-Registrar riscos, bloqueios ou próximos passos.
+- `README.md` ainda mostra `docker compose` cru em vez de `./lab.sh` na
+  seção Docker — mesma pendência já registrada na etapa 01, ainda não
+  corrigida (fora do escopo desta iteração).
