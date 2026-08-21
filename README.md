@@ -11,7 +11,8 @@ provisioner.
 
 ## Status
 
-- Development branch: `lab`
+- Primary/default branch: `main`
+- Integration and pre-promotion branch: `lab`
 - Configuration API: `platformctl.io/v1alpha1`
 - Published releases: none; build from source
 - Supported development hosts: Linux, macOS, and Windows
@@ -127,7 +128,9 @@ container and Vagrant workflows and to understand their isolation boundaries.
 
 ## Contributing
 
-Use `lab` as the base branch and create a topic branch. Go commands must run
-through `scripts/go.sh` or `scripts/go.ps1`; the wrappers keep toolchains and
-caches under ignored project directories. See [Development](docs/development.md)
-and the controlled iteration process in [`iterations/`](iterations/README.md).
+`main` is the principal branch. Create topic branches from the current `lab`
+integration branch, merge validated topic work into `lab`, then promote `lab`
+to `main` through a reviewed pull request. Go commands must run through
+`scripts/go.sh` or `scripts/go.ps1`; the wrappers keep toolchains and caches
+under ignored project directories. See [Development](docs/development.md) and
+the controlled iteration process in [`iterations/`](iterations/README.md).

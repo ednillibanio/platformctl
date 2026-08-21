@@ -19,13 +19,17 @@ confirmação explícita.
 
 1. Propor uma iteração com objetivo, escopo e etapas.
 2. Aguardar confirmação explícita para criar os arquivos da iteração.
-3. Criar uma branch própria para a iteração (nunca commitar direto em `lab`).
+3. Criar uma branch própria a partir de `lab` (nunca commitar direto em `lab`
+   ou `main`). `main` é a branch principal; `lab` é a branch de integração e
+   validação antes da promoção.
 4. Executar uma etapa por vez, somente após confirmação.
 5. Registrar resultado, validação e pendências da etapa.
 6. Fechar a etapa.
 7. Avançar para a próxima etapa somente após nova confirmação.
 8. Fechar a iteração quando todas as etapas estiverem `done` ou `skipped`.
-9. Abrir PR para `lab`, revisar e integrar.
+9. Abrir PR da branch da iteração para `lab`, revisar e integrar.
+10. Depois da validação integrada em `lab`, promover `lab` para `main` por um
+    PR revisado separado.
 
 ## Status
 

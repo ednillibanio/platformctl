@@ -7,7 +7,8 @@
 ## Scope
 
 - Area(s) changed:
-- Base branch: `lab`
+- Base branch and head branch:
+- Workflow stage: topic → `lab`, or promotion `lab` → `main`
 - Related issue: Closes #
 
 ## Behavior and compatibility
