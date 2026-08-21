@@ -2,8 +2,8 @@
 
 This index routes operators, integrators, and maintainers to the authoritative
 `platformctl` documentation. The repository is in the `v1alpha1` foundation
-phase and has no published release; examples and commands describe the `lab`
-branch.
+phase and has no published release. `main` is the principal/default branch;
+`lab` is the integration branch used to validate changes before promotion.
 
 ## Choose a starting point
 

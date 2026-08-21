@@ -1,9 +1,11 @@
 # Installation
 
 No versioned `platformctl` release is published yet. During the `v1alpha1`
-foundation phase, build the `lab` branch from source. This guide installs only
-the CLI binary; operator configuration remains in a separate configuration
-home and is not replaced by source updates.
+foundation phase, build the principal `main` branch from source. This guide
+installs only the CLI binary; operator configuration remains in a separate
+configuration home and is not replaced by source updates. `lab` is an
+integration branch for pre-promotion validation, not the default installation
+channel.
 
 ## Toolchain policy
 
@@ -33,7 +35,6 @@ From a parent development directory:
 ```bash
 git clone https://github.com/ednillibanio/platformctl.git
 cd platformctl
-git switch lab
 
 ./scripts/bootstrap-dev.sh
 ./scripts/go.sh test ./...
@@ -61,7 +62,6 @@ Prerequisites are Git, Bash, `curl`, `tar`, and `shasum` (or `sha256sum`).
 ```bash
 git clone https://github.com/ednillibanio/platformctl.git
 cd platformctl
-git switch lab
 
 ./scripts/bootstrap-dev.sh
 ./scripts/go.sh test ./...
@@ -95,7 +95,6 @@ before extraction.
 ```powershell
 git clone https://github.com/ednillibanio/platformctl.git
 Set-Location platformctl
-git switch lab
 
 .\scripts\bootstrap-dev.ps1
 .\scripts\go.ps1 test ./...
@@ -201,13 +200,13 @@ with a Vagrant controller. It is not a development cache setting; use
 [CLI reference](cli-reference.md#configuration-home-selection) and
 [Vagrant controller integration](vagrant-controller-integration.md).
 
-## Update from `lab`
+## Update from `main`
 
 Until releases exist, run from the checkout:
 
 ```bash
-git switch lab
-git pull --ff-only origin lab
+git switch main
+git pull --ff-only origin main
 ./scripts/bootstrap-dev.sh
 ./scripts/go.sh test ./...
 ./scripts/go.sh build -o bin/platformctl ./cmd/platformctl
@@ -218,6 +217,24 @@ Use the PowerShell wrappers and `.exe` output on Windows. Updating source and
 the binary does not migrate or overwrite the external configuration tree.
 Because the API is still `v1alpha1`, review release/merge notes and validate all
 operator environments before replacing a previously used binary.
+
+## Test the integration branch intentionally
+
+`lab` is the integration branch where changes are validated before promotion to
+`main`. It may contain work that is not yet part of the principal branch. Use it
+only when participating in that validation workflow:
+
+```bash
+git fetch origin
+git switch lab
+git pull --ff-only origin lab
+./scripts/bootstrap-dev.sh
+./scripts/go.sh test ./...
+```
+
+Do not describe an installation from `lab` as a stable/default installation.
+After validation and review, the repository promotes `lab` to `main` through a
+separate pull request.
 
 ## Uninstall
 

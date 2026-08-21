@@ -5,7 +5,10 @@ to build and install the current CLI should use [Installation](installation.md).
 
 ## Development contract
 
-- Base new work on the `lab` branch and use a topic branch.
+- `main` is the principal/default branch. Base topic work on the current `lab`
+  integration branch, not directly on `main`.
+- Merge reviewed topic work into `lab`; after integration validation, promote
+  `lab` to `main` through a separate reviewed pull request.
 - Run Go exclusively through `scripts/go.sh` on Linux/macOS or `scripts/go.ps1`
   on Windows.
 - Keep operator configuration outside the checkout.
