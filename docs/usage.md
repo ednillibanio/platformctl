@@ -1,10 +1,11 @@
 # Usage
 
-A step-by-step guide to actually using platformctl: initializing a
-configuration home, authoring each document type by hand, connecting them
-together, and reading what `render` produces. For the merge mechanics and
-the abstract directory layout, see the
-[Configuration reference](configuration.md); this page is task-oriented.
+A step-by-step guide to initializing a configuration home, authoring each
+document type by hand, connecting them, and reading what `render` produces.
+Complete [Installation](installation.md) first. Use the
+[CLI reference](cli-reference.md) for exact flags and the
+[Configuration reference](configuration.md) for the complete data contract;
+this page is a guided operator workflow.
 
 ## 1. Initialize
 
@@ -12,6 +13,11 @@ the abstract directory layout, see the
 platformctl init
 platformctl environment init prod
 ```
+
+Run these commands as the normal operator, not with `sudo`. They write to the
+operating system's configuration directory unless an absolute
+`PLATFORMCTL_HOME` override is set. Confirm the active location from the success
+messages before adding real data.
 
 This creates, under `PLATFORMCTL_HOME`:
 
@@ -29,6 +35,10 @@ environments/prod/
 platformctl has no subcommand to create a profile, service, or host; you
 author those YAML files yourself.
 
+On POSIX, generated directories use `0700` and generated files use `0600`.
+Apply equally restrictive permissions to documents and credential files you
+create manually.
+
 ## 2. Author documents by hand
 
 Every document shares the same envelope:
@@ -45,7 +55,22 @@ spec:
 Identifiers are lowercase letters, digits, and hyphens
 (`^[a-z][a-z0-9-]*$`).
 
-### Profile — a reusable "role"
+### Profiles — reusable roles and inheritance
+
+Create the root profile referenced by the database profile:
+
+```yaml
+# environments/prod/profiles/base.yaml
+apiVersion: platformctl.io/v1alpha1
+kind: Profile
+metadata:
+  name: base
+spec:
+  values:
+    timezone: UTC
+```
+
+Then create a child profile:
 
 ```yaml
 # environments/prod/profiles/database.yaml
@@ -59,9 +84,8 @@ spec:
     role: database
 ```
 
-`extends` must name a profile that already exists in the same environment
-(here, a separate `profiles/base.yaml` with `kind: Profile`,
-`metadata.name: base`) — `validate` rejects a missing or cyclic parent.
+`extends` names a profile in the same environment. File loading does not depend
+on creation order, but `validate` rejects a missing or cyclic parent.
 
 ### Service — reusable values (and, optionally, ports) any host can attach to
 
@@ -144,6 +168,11 @@ platformctl render --env prod --format json       # JSON, same redaction
 platformctl render --env prod --reveal-secrets     # include real inline values
 ```
 
+Run `validate` after every edit and before passing data to another repository.
+It is read-only. `render` validates again and writes only to standard output.
+Do not use `--reveal-secrets` in shared terminals, logs, CI output, or ordinary
+debugging.
+
 `render` output for `db1` (redacted):
 
 ```yaml
@@ -153,6 +182,7 @@ profile: database
 services: [monitoring]
 config:
   values:
+    timezone: UTC
     role: database
     hostname: db1.prod.internal
     monitoring:
@@ -169,7 +199,7 @@ ports:
 
 Nothing provisions or applies this output. It's meant to be consumed by
 whatever tool actually acts on it — see [Ecosystem](ecosystem.md) for where
-that fits.
+that fits and for the current integration limitations.
 
 ## Field reference
 
@@ -184,3 +214,6 @@ that fits.
 | — `credentials.<name>` | exactly one of `env`, `file`, `value` | — |
 
 All `values` maps are free-form — anything your downstream consumer needs.
+For identifier syntax, loading behavior, validation rules, merge precedence,
+credential semantics, and the rendered schema, continue with the
+[Configuration reference](configuration.md).

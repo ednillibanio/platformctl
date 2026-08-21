@@ -1,74 +1,176 @@
-# Ecosystem
+# Ecosystem and integrations
 
-platformctl is one piece of a larger, multi-repository automation
-ecosystem. This page explains what each piece owns, in what phase it acts,
-and how they hand off to each other. It intentionally does not document
-the internals of the other repositories — see their own documentation for
-that.
+`platformctl` is the operator-side configuration control plane in a
+multi-repository automation ecosystem. This document defines ownership,
+handoffs, and current integration status. It does not replace the authoritative
+documentation of the related repositories.
 
-## The pieces
+## Current integration status
 
-| Repository | Role | Holds real values? | Provisions anything? |
-| --- | --- | --- | --- |
-| `infrastructure-platform` | Public catalog: what services/environments exist, who owns them, cross-repo standards | No — governance metadata only | No |
-| `infra-gitops` (`gitopsctl`) | Reusable automation library (Packer/Ansible/Terraform modules, shared scripts) + its own scoped operator config | Only for its own operation (vSphere connection, git identity, an env-scoped SSH key) | No — it's a library other repos call into |
-| `platformctl` | Central, per-environment tree of values and credential references/values, private to the operator | Yes — this is its whole purpose | No, deliberately never |
-| `provision-*` (e.g. `provision-talos-vsphere`, `provision-glpi`) | Concrete provisioning project for one workload/service | Yes — its own host/topology values, today often duplicated per repo | Yes — this is where Terraform/Ansible/govc/talosctl/Packer actually run |
+The stable handoff available today is:
 
-## Phases
-
-```mermaid
-flowchart TD
-    A["infrastructure-platform\ncatalog: what exists, who owns it"] -.governs.-> D
-    B["infra-gitops (gitopsctl)\nautomation library + its own bootstrap-config"] -->|reusable modules & scripts| D
-    C["platformctl\nPLATFORMCTL_HOME: values + credentials per environment"] -->|platformctl render| D
-    D["provision-* repo\n(e.g. provision-talos-vsphere)"] -->|Terraform / Ansible / govc / talosctl / Packer| E["actual VM / cluster"]
+```text
+PLATFORMCTL_HOME -> platformctl validate -> platformctl render -> YAML or JSON
 ```
 
-1. **`infrastructure-platform`** answers "does this service exist, who owns
-   it, which repo implements it" before any work starts. It is consulted,
-   not executed.
-2. **`infra-gitops`** provides the reusable building blocks (Packer image
-   modules, shared Ansible roles, shared Terraform modules, helper
-   scripts) that a `provision-*` repo assembles into a real provisioning
-   flow. Its own `gitopsctl bootstrap-config` only manages *its own*
-   operator config (vSphere connection, git identity, an env-scoped SSH
-   key) — not the values for any downstream service or VM.
-3. **`platformctl`** is where an operator privately defines, per
-   environment, what hosts/services/profiles exist and what values and
-   credentials apply to each — see [Usage](usage.md) for how. It never
-   invokes Terraform, Ansible, Packer, govc, or talosctl itself.
-   `platformctl render --env <env>` is the hand-off point: a deterministic
-   YAML/JSON document any downstream tool can consume.
-4. **A `provision-*` repo** is where actual provisioning happens. It reads
-   `platformctl render`'s output for the values/credentials it needs (host
-   addresses, per-service configuration, credential references), reuses
-   `infra-gitops` modules for the mechanics, and runs Terraform/Ansible/
-   govc/talosctl/Packer to create and configure the real VM or cluster.
+The rendered document is ready for downstream consumption, but this repository
+does not currently ship adapters for `provision-platform-environments`,
+`provision-semaphoreui`, `provision-nexus3`, `infra-gitops`, or another
+`provision-*` repository. Those repositories also do not currently invoke
+`platformctl` in their committed workflows.
 
-## Why platformctl exists as a separate piece
+Therefore:
 
-Today, each `provision-*` repo tends to maintain its own local
-`overlays/base/scripts/vars.sh` + `overlays/<env>/scripts/vars.sh` tree —
-each one reinventing the same two-level (base + per-environment) variable
-pattern independently, with no reuse between repos. platformctl
-generalizes that into one central, layered model — defaults → environment
-→ profile → service → host — so multiple `provision-*` repos can consume
-the same source of truth instead of each keeping its own redundant copy.
-Because its render output is plain structured YAML/JSON rather than a
-tool-specific format, any consumer (a Terraform data source, an Ansible
-dynamic inventory script, a shell script piping through `yq`/`jq`) can read
-it without platformctl needing to know about that tool.
+- the repository relationships below are real ownership and data-contract
+  relationships;
+- automatic transfer from a render into consumer manifests, inventories, API
+  calls, or secret directories is **planned**, not implemented;
+- operators must not assume that editing `PLATFORMCTL_HOME` changes GitHub,
+  SemaphoreUI, Nexus, a VM, or a container.
 
-## What platformctl is not
+## Repository responsibilities
 
-- Not a provisioner: it never calls Terraform, Ansible, Packer, govc, or
-  talosctl.
-- Not the catalog: it doesn't track what services exist across the
-  platform or who owns them — that's `infrastructure-platform`.
-- Not the automation library: it has no Packer/Ansible/Terraform modules
-  of its own — that's `infra-gitops`.
+| Repository | Authoritative responsibility | Real values? | Executes changes? | Relationship to `platformctl` |
+| --- | --- | --- | --- | --- |
+| `infrastructure-platform` | Public catalog and governance: what exists, ownership, and cross-repository standards. | No operational values. | No. | Conceptual catalog; no current runtime integration. |
+| [`al-rr/infra-gitops`](https://github.com/al-rr/infra-gitops) | Reusable Bash, Ansible, Terraform, Packer, and container automation modules. | Only its own scoped operator configuration. | Library content is executed by consumers. | Future provisioners can combine its modules with a `platformctl` render. |
+| [`platformctl`](https://github.com/ednillibanio/platformctl) | Private layered values and credential references/values per environment. | Yes, by design. | No infrastructure or remote APIs. | Produces the neutral YAML/JSON handoff. |
+| [`al-rr/provision-platform-environments`](https://github.com/al-rr/provision-platform-environments) | Declarative GitHub Environment variables and secret names, reconciled through `platform-environments-ctl`. | Non-secret values in manifests; secret values arrive from local files at apply time. | Yes, against the GitHub API after operator approval. | Candidate consumer for artifact/Nexus values and credential references; adapter not implemented. |
+| [`al-rr/provision-semaphoreui`](https://github.com/al-rr/provision-semaphoreui) | SemaphoreUI container lifecycle and declarative Project/Repository/Inventory/Environment/Template reconciliation. | Secret-free manifests plus operator-supplied secret files. | Yes, against Docker and the Semaphore API. | Candidate consumer for host, Nexus, and deployment values; adapter not implemented. |
+| [`al-rr/provision-nexus3`](https://github.com/al-rr/provision-nexus3) | Nexus3 lifecycle, repository structure, roles, and technical accounts through Ansible and SemaphoreUI workflows. | Environment inventory and external credentials. | Yes, against Nexus3/Docker. | Defines authoritative Nexus provisioning contracts that a future `platformctl` service model can describe for consumers. |
+| Other `provision-*` repositories | Concrete lifecycle for one workload or platform component. | Usually yes, scoped to that consumer. | Yes. | May consume selected hosts/services from rendered output through an explicit adapter. |
 
-See also: [Usage](usage.md) for how to actually author configuration, and
-[Configuration reference](configuration.md) for the layer-resolution
-mechanics and directory structure.
+## Intended flow
+
+```mermaid
+flowchart LR
+    C["infrastructure-platform<br/>catalog and governance"] -. governs .-> P
+    I["infra-gitops<br/>reusable automation"] --> P
+    H["PLATFORMCTL_HOME<br/>private desired values"] --> R["platformctl render<br/>deterministic YAML/JSON"]
+    R --> A["consumer-specific adapter<br/>not implemented here"]
+    A --> P["provision-* or control repository"]
+    P --> T["GitHub API / Semaphore API<br/>Nexus / VM / container"]
+```
+
+The adapter is intentionally explicit. A generic render cannot decide, for
+example, whether a credential reference should become a GitHub Environment
+secret file, a Semaphore `env` secret, a Semaphore Ansible-variable secret, or
+an Ansible lookup. That mapping belongs to the consuming repository and must be
+documented and validated there.
+
+## Cross-repository contracts
+
+### `infra-gitops`
+
+[`infra-gitops`](https://github.com/al-rr/infra-gitops) is the reusable
+automation library. Its `gitopsctl bootstrap-config` manages the library's own
+configuration tree under `~/.config/infra-gitops`; that tree is separate from
+`PLATFORMCTL_HOME` and should not be presented as an alias or replacement.
+
+Authoritative starting points:
+
+- [infra-gitops README](https://github.com/al-rr/infra-gitops/blob/lab/README.md)
+- [Ansible external configuration](https://github.com/al-rr/infra-gitops/blob/lab/docs/en/ansible-external-configuration.md)
+- [Project-local Ansible environment](https://github.com/al-rr/infra-gitops/blob/lab/docs/en/ansible-project-environment.md)
+
+A future provisioner can read a `platformctl` render for desired values while
+using `infra-gitops` modules for execution mechanics. Neither repository needs
+to absorb the other's configuration ownership.
+
+### `provision-platform-environments`
+
+[`provision-platform-environments`](https://github.com/al-rr/provision-platform-environments)
+owns GitHub Environments such as `artifact-lab`. Its committed manifests carry
+non-secret values including Nexus endpoints/repository names and declare secret
+names. At apply time, same-named local files provide secret values.
+
+Authoritative starting points:
+
+- [Repository README](https://github.com/al-rr/provision-platform-environments/blob/lab/README.md)
+- [`ArtifactEnvironmentManifest` reference](https://github.com/al-rr/provision-platform-environments/blob/lab/docs/reference/manifest.md)
+- [Nexus technical-account contract](https://github.com/al-rr/provision-platform-environments/blob/lab/docs/nexus-account-contract.md)
+
+A future adapter may select non-secret Nexus values from a rendered service and
+materialize the consumer manifest. Credential resolution must remain a separate
+apply-time operation: `platformctl` itself never opens `env` or `file`
+references, and the consumer requires raw, mode-`0600`, same-named files.
+
+### `provision-semaphoreui`
+
+[`provision-semaphoreui`](https://github.com/al-rr/provision-semaphoreui)
+owns both the SemaphoreUI container and declarative API reconciliation through
+`semaphoreui-ctl`. Its manifests distinguish process-environment secrets from
+Ansible-variable secrets; they are not interchangeable.
+
+Authoritative starting points:
+
+- [Repository README](https://github.com/al-rr/provision-semaphoreui/blob/lab/README.md)
+- [`semaphoreui-ctl` CLI reference](https://github.com/al-rr/provision-semaphoreui/blob/lab/docs/cli-reference.md)
+- [Java projects lab runbook](https://github.com/al-rr/provision-semaphoreui/blob/lab/docs/lab-java-projects-runbook.md)
+
+A future adapter must map rendered host/service data into the correct Inventory
+and Environment fields and map each credential to the secret type expected by
+the consumed playbook. A direct field-name copy is not a sufficient contract.
+
+### `provision-nexus3`
+
+[`provision-nexus3`](https://github.com/al-rr/provision-nexus3) owns real Nexus3
+deployment, repository configuration, roles, and technical accounts. It
+consumes the `assembleiarr.services.nexus3` Ansible Collection from
+`infra-gitops`.
+
+Authoritative starting points:
+
+- [Repository README](https://github.com/al-rr/provision-nexus3/blob/lab/README.md)
+- [Ansible configuration reference](https://github.com/al-rr/provision-nexus3/blob/lab/ansible/README.md)
+- [Lab provisioning runbook](https://github.com/al-rr/provision-nexus3/blob/lab/docs/lab-provisioning-runbook.md)
+
+The Nexus account contract deliberately separates the CI account used by
+GitHub workflows from the deployment account used by SemaphoreUI. A future
+`platformctl` model or adapter must preserve that separation and must never
+collapse both into an administrative credential.
+
+## Example future handoff
+
+The following is an architectural example, not an implemented command:
+
+```text
+platformctl Service "nexus"
+  non-secret values: URL, OCI registry, Maven/raw repository names
+  credential refs:  CI account, deployment account (separate)
+
+platformctl Host "application-dev"
+  addresses: deployment target CIDRs
+
+                    render --format json
+                              |
+             +----------------+----------------+
+             |                                 |
+  platform-environments adapter      semaphoreui adapter
+  GitHub variables + CI secret       Inventory/Environment + deploy secret
+```
+
+Each adapter should:
+
+1. validate the selected render and expected keys;
+2. fail closed on missing or ambiguous values;
+3. resolve only the credential references it owns;
+4. write consumer-specific temporary files with restrictive permissions;
+5. support a read-only check/diff/dry-run path where the consumer provides one;
+6. avoid committing generated manifests or secret material;
+7. document the exact mapping and cleanup behavior in the consumer repository.
+
+## What `platformctl` is not
+
+- It is not the public catalog or ownership registry.
+- It is not the `infra-gitops` reusable automation library.
+- It is not a GitHub Environment, SemaphoreUI, Nexus, Terraform, or Ansible
+  client.
+- It does not automatically synchronize other repositories.
+- It does not resolve referenced credentials or decide consumer secret types.
+- Its disposable Vagrant/container labs validate this repository only; they are
+  not managed infrastructure environments.
+
+For the render model itself, continue with the
+[Configuration reference](configuration.md). For internal boundaries, see
+[Architecture](architecture.md).
