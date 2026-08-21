@@ -3,6 +3,10 @@
 This directory owns the disposable Linux VM used to validate platformctl
 outside any service-provisioning repository.
 
+For the cross-lab comparison and safety boundary, start with
+[`docs/lab-environments.md`](../docs/lab-environments.md). For development
+commands outside the lab, see [`docs/development.md`](../docs/development.md).
+
 ## Machine
 
 | VM | Role | Default box | Host ports |
@@ -60,12 +64,18 @@ Re-run provisioning with `vagrant provision`. Destroy the disposable VM with
 Copy `config.local.example.yaml` to the ignored `config.local.yaml`. Environment
 variables override local YAML:
 
-- `PLATFORMCTL_VAGRANT_BOX`
-- `PLATFORMCTL_VM_MEMORY`
-- `PLATFORMCTL_VM_CPUS`
-- `PLATFORMCTL_VAGRANT_PROVIDER`
-- `PLATFORMCTL_TEST_SSH_PORT`
-- `PLATFORMCTL_VAGRANT_CONFIG`
+| YAML key | Environment override | Default | Constraint |
+| --- | --- | --- | --- |
+| `box` | `PLATFORMCTL_VAGRANT_BOX` | `bento/ubuntu-24.04` | Non-empty, no newlines. |
+| `memory` | `PLATFORMCTL_VM_MEMORY` | `2048` | Positive integer MiB. |
+| `cpus` | `PLATFORMCTL_VM_CPUS` | `2` | Positive integer. |
+| `provider` | `PLATFORMCTL_VAGRANT_PROVIDER` | `vmware_desktop` | `virtualbox` or `vmware_desktop`. |
+| `ssh_port` | `PLATFORMCTL_TEST_SSH_PORT` | `2266` | Integer from `1024` through `65535`. |
+
+`PLATFORMCTL_VAGRANT_CONFIG` optionally selects a different local YAML file;
+the default is `config.local.yaml` in this directory. Unknown YAML keys are
+rejected. Environment-variable overrides are converted to the expected numeric
+types where applicable and validated before Vagrant defines the machine.
 
 Run `tests/test-vagrantfile-contract.sh` for static checks that do not require
 Ruby, Vagrant, or a provider.

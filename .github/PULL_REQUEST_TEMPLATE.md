@@ -1,24 +1,42 @@
-## Resumo
+## Summary
 
-<!-- 2-5 bullets: o que mudou e por quê. -->
+<!-- What changed and why? Keep this to 2-5 concrete bullets. -->
 
 -
 
-## Módulo/Escopo
+## Scope
 
-- Módulo ou standard alterado:
-- Branch de origem → destino:
+- Area(s) changed:
+- Base branch: `lab`
+- Related issue: Closes #
 
-## O Que Foi Testado
+## Behavior and compatibility
 
-- [ ] `bash -n` em todos os scripts alterados
-- [ ] `shellcheck -x` (quando disponível no checkout)
-- [ ] Execução real do módulo (via `run-module-suite.sh --module=<nome>` ou execução direta)
-- [ ] Idempotência (rodado duas vezes, mesmo resultado)
-- [ ] Vagrant — Oracle Linux
-- [ ] Vagrant — Ubuntu
+<!-- Describe user-visible behavior, schema/config compatibility, security impact,
+or write "No user-visible behavior change". -->
 
-## O Que Ficou Pendente / Riscos
+## Validation
 
-<!-- Gaps conhecidos, follow-ups, ou riscos de rollout. "Nenhum" se não houver. -->
+Run the checks relevant to the change and remove items that do not apply.
 
+- [ ] `./scripts/go.sh vet ./...`
+- [ ] `./scripts/go.sh test ./...`
+- [ ] `./scripts/go.sh build -o bin/platformctl ./cmd/platformctl`
+- [ ] `bash vagrant/tests/test-vagrantfile-contract.sh`
+- [ ] `bash container/tests/test-compose-contract.sh`
+- [ ] Example `validate`/`render` smoke test
+- [ ] Relative Markdown links and referenced paths checked
+- [ ] `git diff --check`
+
+## Security and operations
+
+- [ ] No credentials, private keys, revealed renders, or private operator
+      configuration were committed.
+- [ ] Destructive or remote-mutating validation was not run, or is explicitly
+      described below with approval/evidence.
+- [ ] Documentation was updated for user-visible or operational changes.
+
+## Risks and follow-ups
+
+<!-- Known gaps, compatibility risks, external validation still required, or
+"None". -->

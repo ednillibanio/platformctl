@@ -7,6 +7,10 @@ reusing `vagrant/scripts/provision-test-vm.sh` unchanged, and works natively
 on `linux/arm64` (including Apple Silicon hosts), where VirtualBox/VMware
 support is limited or unavailable.
 
+For the cross-lab comparison and safety boundary, start with
+[`docs/lab-environments.md`](../docs/lab-environments.md). For development
+commands outside the lab, see [`docs/development.md`](../docs/development.md).
+
 ## Service
 
 | Service | Role | Default base image |
@@ -98,9 +102,14 @@ Operator configuration outside this lab is unaffected.
 
 Copy `.env.example` to the ignored `.env`. Variables:
 
-- `PLATFORMCTL_LAB_BASE_IMAGE`
-- `PLATFORMCTL_LAB_CPUS`
-- `PLATFORMCTL_LAB_MEMORY`
+| Variable | Required | Default | Purpose |
+| --- | --- | --- | --- |
+| `PLATFORMCTL_LAB_BASE_IMAGE` | No | `ubuntu:24.04` | Base image used by the lab Dockerfile. |
+| `PLATFORMCTL_LAB_CPUS` | No | `2` | Compose CPU limit. |
+| `PLATFORMCTL_LAB_MEMORY` | No | `2g` | Compose memory limit. |
+
+These values control disposable compute only and must not contain credentials.
+The lab always uses the committed `examples/platform-home` configuration.
 
 Run `tests/test-compose-contract.sh` for static checks that do not require
 Docker.

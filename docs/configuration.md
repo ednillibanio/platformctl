@@ -1,5 +1,9 @@
 # Configuration reference
 
+This is the authoritative operator reference for the `v1alpha1` input and
+rendered models. For a guided example, use [Usage](usage.md). For command flags,
+output, and exit behavior, use the [CLI reference](cli-reference.md).
+
 ## Layout
 
 ```text
@@ -19,6 +23,51 @@ match `metadata.name`. Identifiers use lowercase letters, digits, and hyphens.
 `spec.values` is the extensible module-facing map. All other fields are strict.
 Unknown structural fields, duplicate YAML keys, multiple YAML documents, and
 invalid references are rejected.
+
+## Loading contract
+
+| Rule | Behavior |
+| --- | --- |
+| Environment selection | `--env` must match `^[a-z][a-z0-9-]*$`. |
+| Root documents | `defaults.yaml` and `environments/<env>/environment.yaml` are loaded from exact paths. |
+| Named documents | Only direct files ending in `.yaml` under `profiles/`, `services/`, and `hosts/` are loaded. |
+| Ignored entries | Nested directories, `.yml` files, and other extensions are ignored. |
+| Filename identity | `<name>.yaml` must contain `metadata.name: <name>`. |
+| Environment identity | `environment.yaml` metadata must equal the requested `<env>`. |
+| YAML stream | Exactly one YAML document per file. |
+| Structural fields | Unknown fields are rejected by typed decoding. |
+| Extensible values | Arbitrary consumer data belongs only under `spec.values`. |
+
+Directories for profiles, services, or hosts may be absent; the loader treats
+the missing collection as empty. A missing environment file is reported as a
+missing environment. Author documents against the public schema even where a
+zero-value Go struct might currently allow an omitted empty `spec`; `spec` is
+part of the supported document envelope.
+
+## Document field inventory
+
+| Kind | Location | Required content | Optional content |
+| --- | --- | --- | --- |
+| `Defaults` | `defaults.yaml` | header; `metadata.name: defaults`; `spec` | `spec.values`, `spec.credentials` |
+| `Environment` | `environments/<env>/environment.yaml` | header; metadata matching `<env>`; `spec` | `spec.values`, `spec.credentials` |
+| `Profile` | `profiles/<name>.yaml` | header and matching metadata; `spec` | `spec.extends`, values, credentials |
+| `Service` | `services/<name>.yaml` | header and matching metadata; `spec` | values, credentials, ports |
+| `Host` | `hosts/<name>.yaml` | header, matching metadata, `spec.profile` | services, addresses, values, credentials |
+
+Every header contains:
+
+```yaml
+apiVersion: platformctl.io/v1alpha1
+kind: Defaults|Environment|Profile|Service|Host
+metadata:
+  name: lowercase-identifier
+spec: {}
+```
+
+The JSON Schemas under [`schemas/v1alpha1/`](../schemas/v1alpha1/) describe the
+public input and output contracts for editors and external tooling. The CLI
+uses typed Go decoding plus semantic validation; it does not execute JSON
+Schema validation at runtime.
 
 ## Directory structure created
 
@@ -76,6 +125,29 @@ Hosts contain CIDR addresses, one profile, and an ordered service list. Service
 ports use numeric ports from 1 through 65535 and the `tcp` or `udp` protocol.
 Each `source_hosts` entry refers to a host in the same environment and renders
 as that host's sorted, deduplicated CIDR addresses.
+
+## Validation contract
+
+Validation is offline and does not access referenced secrets or remote systems.
+The CLI enforces:
+
+- exact `apiVersion: platformctl.io/v1alpha1` and expected `kind`;
+- lowercase identifiers matching `^[a-z][a-z0-9-]*$`;
+- `metadata.name: defaults` for the defaults document;
+- exactly one of `env`, `file`, or `value` for every credential;
+- credential names using the identifier pattern;
+- environment-variable references matching `^[A-Za-z_][A-Za-z0-9_]*$`;
+- an existing parent for every non-empty `Profile.spec.extends`;
+- no profile inheritance cycle;
+- port range `1..65535` and protocol `tcp` or `udp`;
+- unique `source_hosts`, each referring to a host with at least one address;
+- one existing profile for every host;
+- unique, existing services in each host's ordered service list;
+- unique, parseable CIDR prefixes in every host address list.
+
+Independent semantic problems are sorted and returned together. File-open and
+YAML parsing failures occur before a complete bundle exists and therefore stop
+the pipeline immediately.
 
 ## Worked merge example
 
@@ -165,6 +237,24 @@ by default — the field is printed as `<redacted>`. Pass `--reveal-secrets` to
 include the real value in the output. `env` and `file` references are never
 redacted, since they never contain the secret in the first place.
 
+Credential behavior by form:
+
+| Form | Stored in configuration | CLI validation | Render behavior | Resolution owner |
+| --- | --- | --- | --- | --- |
+| `env` | Environment-variable name | Non-empty and shell-style name syntax | Name is preserved and never redacted | Downstream consumer |
+| `file` | Opaque path/reference string | Non-empty only | String is preserved and never redacted | Downstream consumer |
+| `value` | Secret itself | Non-empty and exclusive | `<redacted>` by default; real value with `--reveal-secrets` | Already resolved in config |
+
+`platformctl` does not define whether a `file` path is absolute, relative to
+`PLATFORMCTL_HOME`, relative to another working directory, or a logical name.
+It also does not check existence, permissions, symlinks, or file contents. The
+consumer must define and enforce that contract. Similarly, an `env` reference
+need not be set in the `platformctl` process; only its name is validated.
+
+Credential maps merge by whole-object replacement. For example, a later
+`automation-token: {file: ...}` completely replaces an earlier
+`automation-token: {env: ...}`.
+
 ## Initialization behavior
 
 Initialization is idempotent when managed files already contain the expected
@@ -175,3 +265,36 @@ deletes additional operator files.
 External controllers that need live visibility into an operator's
 configuration tree should mount `PLATFORMCTL_HOME` using the pattern in the
 [Vagrant controller integration guide](vagrant-controller-integration.md).
+
+On POSIX systems, initialization sets managed directories to `0700` and managed
+files to `0600`. Manually created profiles, services, hosts, and credential
+targets are the operator's responsibility and should use permissions
+appropriate to their contents.
+
+## Rendered document
+
+`render` produces one `RenderedEnvironment`:
+
+```yaml
+apiVersion: platformctl.io/v1alpha1
+kind: RenderedEnvironment
+metadata:
+  name: lab
+hosts: []
+```
+
+Hosts are sorted by name. Each host contains:
+
+| Field | Source |
+| --- | --- |
+| `name` | Host metadata/filename |
+| `addresses` | Host declaration, original order |
+| `profile` | Selected host profile |
+| `services` | Declared service order |
+| `config.values` | Effective recursive merge |
+| `config.credentials` | Effective credential map, redacted by CLI default |
+| `ports` | Attached service ports with resolved, sorted source CIDRs |
+
+YAML is the default. JSON uses indented output and a final newline. Rendering
+is read-only and writes to standard output; file creation, permissions, and
+cleanup for redirected output belong to the caller.

@@ -93,9 +93,10 @@ sequence, and rendering stops immediately if any stage fails:
     └── hosts/<name>.yaml
 ```
 
-This tree lives outside the repo and is never committed. Credentials are only
-ever *references* (`SecretRef{Env|File}`) — platformctl never reads or prints
-the underlying secret values.
+This tree lives outside the repo and is never committed. Credentials support
+`SecretRef{Env|File|Value}`. `Env` and `File` are opaque references that
+platformctl never resolves; inline `Value` contains the secret itself and is
+redacted by default unless `render --reveal-secrets` is explicit.
 
 ### Disposable lab environments
 

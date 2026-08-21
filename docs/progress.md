@@ -1,45 +1,76 @@
 # Implementation progress
 
-## Completed
+This page separates implemented capability, repository-owned automated
+validation, external/manual validation, and deferred product work. It is not a
+release guarantee; the public configuration API remains `v1alpha1`.
 
-- Cross-platform Go CLI foundation.
-- Portable operator home and idempotent scaffolding.
-- Strict YAML parsing, typed schemas, semantic validation, and reference checks.
-- Ordered layer resolution, profile inheritance, and host-specific overrides.
-- Deterministic YAML and JSON rendering; `env`/`file` credential references
-  are never expanded, and inline `value` credentials are redacted by default
-  (`render --reveal-secrets` to include them).
-- Linux and Windows development bootstrap with pinned Go checksums.
-- Unit, integration, security, example, and cross-build coverage.
-- Standalone disposable Vagrant test VM contract.
-- macOS development bootstrap for Intel and Apple Silicon.
-- Live host configuration mount guide for Vagrant controllers.
-- Standalone disposable Docker container lab contract (native `linux/arm64`,
-  works on Apple Silicon without emulation).
+## Implemented
 
-## Current validation
+- Cross-platform Go CLI foundation with Cobra.
+- Portable operator configuration-home resolution and absolute
+  `PLATFORMCTL_HOME` overrides.
+- Idempotent scaffolding with divergent-file protection and POSIX `0700`/`0600`
+  permissions.
+- Strict typed YAML parsing, filename identity checks, and single-document
+  enforcement.
+- Semantic validation and sorted, aggregated cross-document errors.
+- Ordered host resolution through defaults, environment, profile inheritance,
+  services, and host overrides.
+- Immutable recursive map merge and shallow credential replacement.
+- Deterministic YAML and JSON rendering.
+- Credential forms `env`, `file`, and inline `value`; inline values are
+  redacted by default and revealed only with `render --reveal-secrets`.
+- Embedded JSON Schemas for configuration and rendered environments.
+- Linux/macOS/Windows development wrappers and pinned fallback Go bootstrap.
+- Project-owned Vagrant and Docker Compose validation labs sharing one
+  provisioning/test script.
+- Live host configuration mount guidance for external Vagrant controllers.
+- Operator, integrator, and maintainer documentation under `docs/`.
 
-Local Linux validation passes for formatting, vet, tests, example rendering,
-bootstrap from a machine without Go, and Linux/Windows builds. The Vagrant
-contract passes without requiring Vagrant. The container lab contract passes
-without requiring Docker.
+## Automated repository validation
 
-## Pending validation
+The Go suite covers CLI workflow, loading, scaffolding, platform-home policy,
+merge, validation, rendering/redaction, embedded schemas, and the committed
+example.
 
-- Run the GitHub Actions Linux and Windows matrix.
-- Run the PowerShell bootstrap on Windows.
-- Execute `vagrant validate`, create `platformctl-test` with both supported
-  providers where available, and inspect the persisted ready status.
-- Build and run the container lab (`docker compose up --build`), and inspect
-  the persisted ready status and rendered artifacts, mirroring the Vagrant
-  contract.
+The workflow in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) is
+configured to run on pushes and pull requests:
+
+- bootstrap, vet, test, and build on Ubuntu, macOS, and Windows with Go 1.26.x;
+- static Vagrant and container contract tests on Ubuntu;
+- full Docker Compose lab build/run/status/cleanup on Ubuntu.
+
+The static lab tests do not require Docker, Vagrant, Ruby, or a hypervisor.
+
+## Manual or environment-dependent validation
+
+These checks depend on external environments and are not fully represented by
+the ordinary local unit suite:
+
+- PowerShell bootstrap behavior on a real Windows control host;
+- Vagrant validation and VM creation with each available provider;
+- inspection of provider-specific synced-folder behavior;
+- live `PLATFORMCTL_HOME` mounts in external controller repositories;
+- downstream consumer adapters and provisioning, which are not implemented.
+
+See [Lab environments](lab-environments.md) for supported lab mechanisms and
+[Vagrant controller integration](vagrant-controller-integration.md) for the
+separate live-mount procedure.
 
 ## Deferred product work
 
-- Runtime orchestration of `infra-gitops` and `provision-*`.
-- Real provisioning through Ansible, Terraform, govc, or glpictl, and
-  orchestration of Vagrant- or container-based environments as managed
-  provisioning targets — distinct from the `vagrant` and `container`
-  development labs, which already exist and are not provisioning.
-- Catalog import, Vault integration, daemon/API, and graphical interfaces.
-- Release packaging, signed checksums, upgrade policy, and stable exit codes.
+- Consumer adapters for `provision-platform-environments`,
+  `provision-semaphoreui`, `provision-nexus3`, and other `provision-*`
+  repositories.
+- Runtime orchestration of `infra-gitops` modules or provisioning repositories.
+- Real provisioning through Ansible, Terraform, Packer, `govc`, or service
+  CLIs.
+- Catalog import, Vault/secrets-manager integration, daemon/API, and graphical
+  interfaces.
+- Release packaging, signed checksums, upgrade/migration policy, and stable
+  category-specific exit codes.
+- Managed Vagrant/container infrastructure targets; the existing labs validate
+  this repository and are not product provisioning targets.
+
+See [Ecosystem and integrations](ecosystem.md) for the difference between a
+documented future handoff and a currently implemented integration.

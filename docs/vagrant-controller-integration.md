@@ -4,6 +4,11 @@ This guide mounts the operator's live platformctl configuration into a Linux
 Vagrant controller. It is intended for lab and development workflows where
 values change frequently and must become visible in the VM immediately.
 
+This is a transport recipe, not a consumer adapter: it makes files visible but
+does not translate rendered values into a provisioner's inventory, manifest,
+or secret representation. Read [Ecosystem and integrations](ecosystem.md)
+before adopting it in another repository.
+
 ## Supported behavior
 
 The host remains the source of truth:
