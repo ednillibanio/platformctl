@@ -262,6 +262,13 @@ scaffold. Divergent managed files are preserved and produce an error unless
 `--force` is supplied. Force replaces only the known scaffold file and never
 deletes additional operator files.
 
+For initialization, `platformctl` rejects symbolic links at the configuration
+home root, its managed directories, and the managed `defaults.yaml` and
+`environment.yaml` files. Do not use a symbolic link to relocate this managed
+tree: select its real absolute location with `PLATFORMCTL_HOME` instead. This
+check protects scaffold writes and permission changes; it does not change the
+opaque semantics of credential `file` references.
+
 External controllers that need live visibility into an operator's
 configuration tree should mount `PLATFORMCTL_HOME` using the pattern in the
 [Vagrant controller integration guide](vagrant-controller-integration.md).
