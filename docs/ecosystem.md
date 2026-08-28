@@ -28,6 +28,28 @@ Therefore:
 - operators must not assume that editing `PLATFORMCTL_HOME` changes GitHub,
   SemaphoreUI, Nexus, a VM, or a container.
 
+## Dependency and link boundary
+
+`platformctl` does not declare a source, build, or runtime dependency on any
+of the repositories in this guide. In particular, it has no Git submodules,
+does not clone repositories, invoke their CLIs, or call their APIs. Its Go
+module dependencies are limited to Cobra and the YAML parser; the container
+and Vagrant labs are development-only dependencies, not integration adapters.
+
+The repository links below deliberately point to the related repositories'
+`lab` branches, where their pre-promotion integration contracts are reviewed.
+On 2026-08-28, each linked repository, branch, and referenced document was
+verified through GitHub. The related repositories use `main` as their default
+branch, so use the linked `lab` material when evaluating a change that will be
+integrated through `lab`; do not infer a runtime dependency from those links.
+
+For a new adapter, start by treating the rendered YAML or JSON and the schemas
+in [`schemas/v1alpha1/`](../schemas/v1alpha1/) as the only `platformctl`
+contract. Open a scoped issue in the selected consumer repository, define and
+test the field and credential mapping there, then deliver the adapter through
+that repository's normal review flow. No repository currently performs this
+step automatically.
+
 ## Repository responsibilities
 
 | Repository | Authoritative responsibility | Real values? | Executes changes? | Relationship to `platformctl` |
