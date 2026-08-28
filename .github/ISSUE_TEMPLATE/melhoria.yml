@@ -8,17 +8,17 @@ body:
     attributes:
       label: Módulo/área
       options:
-        - sshd
-        - php
-        - apache
-        - mariadb
-        - crowdsec
-        - fail2ban
-        - packer
-        - terraform
-        - ansible
+        - CLI
+        - configuração/scaffold
+        - parsing/validação
+        - merge/render
+        - schemas
+        - instalação/toolchain
         - vagrant/lab
-        - novo módulo
+        - container/lab
+        - CI/build
+        - documentação
+        - integração externa
         - outro
     validations:
       required: true

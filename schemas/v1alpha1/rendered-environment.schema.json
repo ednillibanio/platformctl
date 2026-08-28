@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platformctl.io/schemas/v1alpha1/rendered-environment.schema.json",
+  "title": "platformctl rendered environment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "hosts"],
+  "properties": {
+    "apiVersion": { "const": "platformctl.io/v1alpha1" },
+    "kind": { "const": "RenderedEnvironment" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": { "name": { "type": "string" } }
+    },
+    "hosts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "profile", "config"],
+        "properties": {
+          "name": { "type": "string" },
+          "addresses": { "type": "array", "items": { "type": "string" } },
+          "profile": { "type": "string" },
+          "services": { "type": "array", "items": { "type": "string" } },
+          "config": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "values": { "type": "object" },
+              "credentials": { "type": "object" }
+            }
+          },
+          "ports": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["service", "port", "protocol"],
+              "properties": {
+                "service": { "type": "string" },
+                "port": { "type": "integer" },
+                "protocol": { "enum": ["tcp", "udp"] },
+                "sources": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,76 @@
+# Implementation progress
+
+This page separates implemented capability, repository-owned automated
+validation, external/manual validation, and deferred product work. It is not a
+release guarantee; the public configuration API remains `v1alpha1`.
+
+## Implemented
+
+- Cross-platform Go CLI foundation with Cobra.
+- Portable operator configuration-home resolution and absolute
+  `PLATFORMCTL_HOME` overrides.
+- Idempotent scaffolding with divergent-file protection and POSIX `0700`/`0600`
+  permissions.
+- Strict typed YAML parsing, filename identity checks, and single-document
+  enforcement.
+- Semantic validation and sorted, aggregated cross-document errors.
+- Ordered host resolution through defaults, environment, profile inheritance,
+  services, and host overrides.
+- Immutable recursive map merge and shallow credential replacement.
+- Deterministic YAML and JSON rendering.
+- Credential forms `env`, `file`, and inline `value`; inline values are
+  redacted by default and revealed only with `render --reveal-secrets`.
+- Embedded JSON Schemas for configuration and rendered environments.
+- Linux/macOS/Windows development wrappers and pinned fallback Go bootstrap.
+- Project-owned Vagrant and Docker Compose validation labs sharing one
+  provisioning/test script.
+- Live host configuration mount guidance for external Vagrant controllers.
+- Operator, integrator, and maintainer documentation under `docs/`.
+
+## Automated repository validation
+
+The Go suite covers CLI workflow, loading, scaffolding, platform-home policy,
+merge, validation, rendering/redaction, embedded schemas, and the committed
+example.
+
+The workflow in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) is
+configured to run on pushes and pull requests:
+
+- bootstrap, vet, test, and build on Ubuntu, macOS, and Windows with Go 1.26.x;
+- static Vagrant and container contract tests on Ubuntu;
+- full Docker Compose lab build/run/status/cleanup on Ubuntu.
+
+The static lab tests do not require Docker, Vagrant, Ruby, or a hypervisor.
+
+## Manual or environment-dependent validation
+
+These checks depend on external environments and are not fully represented by
+the ordinary local unit suite:
+
+- PowerShell bootstrap behavior on a real Windows control host;
+- Vagrant validation and VM creation with each available provider;
+- inspection of provider-specific synced-folder behavior;
+- live `PLATFORMCTL_HOME` mounts in external controller repositories;
+- downstream consumer adapters and provisioning, which are not implemented.
+
+See [Lab environments](lab-environments.md) for supported lab mechanisms and
+[Vagrant controller integration](vagrant-controller-integration.md) for the
+separate live-mount procedure.
+
+## Deferred product work
+
+- Consumer adapters for `provision-platform-environments`,
+  `provision-semaphoreui`, `provision-nexus3`, and other `provision-*`
+  repositories.
+- Runtime orchestration of `infra-gitops` modules or provisioning repositories.
+- Real provisioning through Ansible, Terraform, Packer, `govc`, or service
+  CLIs.
+- Catalog import, Vault/secrets-manager integration, daemon/API, and graphical
+  interfaces.
+- Release packaging, signed checksums, upgrade/migration policy, and stable
+  category-specific exit codes.
+- Managed Vagrant/container infrastructure targets; the existing labs validate
+  this repository and are not product provisioning targets.
+
+See [Ecosystem and integrations](ecosystem.md) for the difference between a
+documented future handoff and a currently implemented integration.

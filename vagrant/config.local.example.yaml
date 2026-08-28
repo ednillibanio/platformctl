@@ -1,0 +1,6 @@
+# Host-local Vagrant settings. Copy to config.local.yaml.
+box: bento/ubuntu-24.04
+memory: 2048
+cpus: 2
+provider: vmware_desktop
+ssh_port: 2266

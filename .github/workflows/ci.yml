@@ -1,0 +1,60 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+          cache: true
+      - name: Bootstrap
+        if: runner.os != 'Windows'
+        run: ./scripts/bootstrap-dev.sh
+      - name: Bootstrap
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/bootstrap-dev.ps1
+      - name: Vet and test
+        if: runner.os != 'Windows'
+        run: |
+          ./scripts/go.sh vet ./...
+          ./scripts/go.sh test ./...
+          ./scripts/go.sh build ./cmd/platformctl
+      - name: Vet and test
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          ./scripts/go.ps1 vet ./...
+          ./scripts/go.ps1 test ./...
+          ./scripts/go.ps1 build ./cmd/platformctl
+
+  container-lab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Contract tests
+        run: |
+          bash vagrant/tests/test-vagrantfile-contract.sh
+          bash container/tests/test-compose-contract.sh
+      - name: Build and run the container lab
+        working-directory: container
+        run: ./lab.sh up
+      - name: Inspect status
+        working-directory: container
+        run: ./lab.sh status
+      - name: Clean up
+        if: always()
+        working-directory: container
+        run: ./lab.sh destroy

@@ -1,0 +1,14 @@
+apiVersion: platformctl.io/v1alpha1
+kind: Service
+metadata:
+  name: http
+spec:
+  values:
+    http:
+      listen: 0.0.0.0
+      tls: false
+  ports:
+    - port: 8080
+      protocol: tcp
+      source_hosts:
+        - controller

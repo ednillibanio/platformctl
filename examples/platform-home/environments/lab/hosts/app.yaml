@@ -1,0 +1,15 @@
+apiVersion: platformctl.io/v1alpha1
+kind: Host
+metadata:
+  name: app
+spec:
+  profile: application
+  services:
+    - http
+  addresses:
+    - 192.0.2.20/32
+  values:
+    workers: 4
+  credentials:
+    application-password:
+      file: credentials/app-password

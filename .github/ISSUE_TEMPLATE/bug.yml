@@ -8,27 +8,30 @@ body:
     attributes:
       label: Módulo/área afetada
       options:
-        - sshd
-        - php
-        - apache
-        - mariadb
-        - crowdsec
-        - fail2ban
-        - packer
-        - terraform
-        - ansible
+        - CLI
+        - configuração/scaffold
+        - parsing/validação
+        - merge/render
+        - schemas
+        - instalação/toolchain
         - vagrant/lab
+        - container/lab
+        - CI/build
+        - documentação
+        - integração externa
         - outro
     validations:
       required: true
   - type: dropdown
-    id: distro
+    id: plataforma
     attributes:
-      label: Distro
+      label: Plataforma/ambiente
       options:
-        - Oracle Linux 9
-        - Oracle Linux 8
-        - Ubuntu 24.04
+        - Linux
+        - macOS
+        - Windows
+        - container/lab
+        - vagrant/lab
         - N/A
     validations:
       required: false
