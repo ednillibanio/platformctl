@@ -6,7 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Always invoke Go through the wrapper scripts, not `go` directly — they pin
 `GOCACHE`/`GOPATH` under the ignored `.cache/` directory and prefer a
-bootstrapped toolchain under `.tools/` if one exists.
+bootstrapped toolchain under `.tools/` if one exists. Per the maintainer
+workflow, run them inside the `container/` or `vagrant/` lab rather than on
+the operator host (see "Disposable lab environments" and "Workflow" below).
 
 ```bash
 ./scripts/bootstrap-dev.sh                                  # one-time setup; downloads pinned Go if none is installed
@@ -20,22 +22,31 @@ bootstrapped toolchain under `.tools/` if one exists.
 Windows uses `scripts\bootstrap-dev.ps1` / `scripts\go.ps1` with the same
 argument conventions.
 
-CI (`.github/workflows/ci.yml`) runs on ubuntu/macos/windows: bootstrap, then
-`vet`, `test ./...`, and `build ./cmd/platformctl`.
-
-Manual CLI smoke test:
+Static lab contract checks (Bash only, no Vagrant/Docker needed):
 
 ```bash
-platformctl init
-platformctl environment init lab
-platformctl validate --env lab
-platformctl render --env lab            # yaml
-platformctl render --env lab --format json
+bash vagrant/tests/test-vagrantfile-contract.sh
+bash container/tests/test-compose-contract.sh
 ```
 
-`PLATFORMCTL_HOME` overrides the configuration root used by `init`/`validate`/
-`render`; otherwise it resolves to the OS user config directory (see
-`internal/platformhome/home.go`).
+CI (`.github/workflows/ci.yml`) runs on ubuntu/macos/windows: bootstrap, then
+`vet`, `test ./...`, and `build ./cmd/platformctl`. A separate Linux job runs
+both static lab contracts and then the full container lab (`container/lab.sh`).
+
+Manual CLI smoke test — use the committed, secret-free fixture so the real
+operator config home is never touched:
+
+```bash
+PLATFORMCTL_HOME="${PWD}/examples/platform-home" ./bin/platformctl validate --env lab
+PLATFORMCTL_HOME="${PWD}/examples/platform-home" ./bin/platformctl render --env lab
+PLATFORMCTL_HOME="${PWD}/examples/platform-home" ./bin/platformctl render --env lab --format json
+```
+
+`examples/platform-home/` is also exercised by `go test ./...`, so changes to
+the config schema must keep it valid. `PLATFORMCTL_HOME` overrides the
+configuration root and must be an absolute path; otherwise it resolves to the
+OS user config directory (see `internal/platformhome/home.go`). `init` and
+`environment init` write to that root, so point them at a scratch directory.
 
 ## Architecture
 
@@ -43,8 +54,9 @@ platformctl render --env lab --format json
 environments: it creates, validates, merges, and renders operator
 configuration but never invokes Vagrant, Ansible, Terraform, or any
 provisioner itself. It's intentionally a separate concern from
-`infrastructure-platform` (declarative catalog), `infra-gitops` (automation
-library), `provision-*` repos, and service CLIs like `glpictl` — those are
+`infrastructure-platform` (declarative catalog), `platform-modules` (automation
+library; successor to the archived `infra-gitops`, which `docs/ecosystem.md`
+still references), `provision-*` repos, and service CLIs like `glpictl` — those are
 future consumers of the rendered model, not dependencies of this repo.
 
 ### Pipeline
@@ -56,7 +68,8 @@ sequence, and rendering stops immediately if any stage fails:
    single-document only) into typed docs (`Defaults`, `Environment`,
    `Profile`, `Service`, `Host`), assembled into a `Bundle`. Filenames must
    match `metadata.name`; `internal/config/scaffold.go` owns `init` /
-   `environment init` templating and enforces `0700`/`0600` permissions.
+   `environment init` templating, enforces `0700`/`0600` permissions, and
+   refuses to write through symlinks (`ErrUnsafeSymlink`).
 2. **`internal/validation`** — semantic and cross-document checks over a
    `Bundle`: apiVersion/kind headers, credential shape (exactly one of
    `env`/`file`/`value`), profile inheritance cycles, port ranges, and every
@@ -117,3 +130,25 @@ operator's live `PLATFORMCTL_HOME` directly into a *service* controller VM
 authoritative, and that mount is a different concern from the validation
 labs above; it's specific to Vagrant's `synced_folder` and has no container
 equivalent yet.
+
+## Workflow
+
+Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before any change that will be
+committed. It points to the ecosystem-wide standard
+(`infrastructure-platform/docs/standards/contribution-workflow.md`) and lists
+the local rules. In short:
+
+- issue first (template in `.github/ISSUE_TEMPLATE/`, assigned to the
+  operator) → topic branch from `lab` → one iteration step at a time, each
+  gated on explicit operator confirmation → PR into `lab` with `Refs #N` →
+  merge only on explicit confirmation → close the issue manually → separate
+  `lab` → `main` promotion PR. Never commit directly to `lab` or `main`.
+- iterations live in `iterations/NNN-topic/` (templates in
+  `iterations/_templates/`, rules in `iterations/README.md`, proposals in
+  `iterations/BACKLOG.md`), written in Portuguese; everything else is English.
+- build/test in the `container/` or `vagrant/` labs, not on the operator host.
+
+Cross-repository work (for example the platform configuration alignment with
+`platform-modules` and `platform-labs`) is coordinated from
+`infrastructure-platform`; see the corresponding entry in
+`iterations/BACKLOG.md` before starting it.
