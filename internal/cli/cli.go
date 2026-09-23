@@ -25,7 +25,7 @@ func NewWithIO(stdout, stderr io.Writer) *cobra.Command {
 	}
 	root.SetOut(stdout)
 	root.SetErr(stderr)
-	root.AddCommand(initCommand(stdout), environmentCommand(stdout), validateCommand(stdout), renderCommand(stdout))
+	root.AddCommand(initCommand(stdout), environmentCommand(stdout), validateCommand(stdout), renderCommand(stdout), exportCommand(stdout))
 	return root
 }
 
@@ -128,6 +128,67 @@ func renderCommand(stdout io.Writer) *cobra.Command {
 	command.Flags().StringVar(&env, "env", "", "environment name (required)")
 	command.Flags().StringVar(&format, "format", "yaml", "output format: yaml or json")
 	command.Flags().BoolVar(&revealSecrets, "reveal-secrets", false, "include inline credential values instead of redacting them")
+	_ = command.MarkFlagRequired("env")
+	return command
+}
+
+func exportCommand(stdout io.Writer) *cobra.Command {
+	var env, format, prefix, host string
+	var services []string
+	var revealSecrets bool
+	command := &cobra.Command{
+		Use:   "export",
+		Short: "Export resolved values as shell environment variables",
+		Long: `Export resolved values as shell environment variables.
+
+Without --host, the layers are defaults, the environment, and each --service
+in the order given. With --host, they are that host's resolution order.
+
+The output is shell code to evaluate, for example:
+
+  eval "$(platformctl export --env lab --service packer --prefix PM_)"
+
+Credential references are resolved by the evaluating shell, never by
+platformctl. If any referenced variable is unset or file is unreadable,
+nothing is exported and the evaluation returns a non-zero status.`,
+		Args: cobra.NoArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			if format != "env" {
+				return fmt.Errorf("unsupported format %q; expected env", format)
+			}
+			if host != "" && len(services) > 0 {
+				return fmt.Errorf("--host and --service are mutually exclusive")
+			}
+			bundle, err := load(env)
+			if err != nil {
+				return err
+			}
+			var resolved config.RenderedConfig
+			if host != "" {
+				rendered, err := render.Resolve(bundle)
+				if err != nil {
+					return err
+				}
+				if resolved, err = render.HostConfig(rendered, host); err != nil {
+					return err
+				}
+			} else if resolved, err = render.ResolveServices(bundle, services); err != nil {
+				return err
+			}
+			output, err := render.EncodeEnv(resolved, render.EnvOptions{Prefix: prefix, RevealSecrets: revealSecrets})
+			if err != nil {
+				return err
+			}
+			_, err = stdout.Write(output)
+			return err
+		},
+	}
+	command.Flags().StringVar(&env, "env", "", "environment name (required)")
+	command.Flags().StringArrayVar(&services, "service", nil, "service layer to apply, in order (repeatable)")
+	command.Flags().StringVar(&host, "host", "", "export one host's resolved configuration instead of services")
+	command.Flags().StringVar(&format, "format", "env", "output format: env")
+	command.Flags().StringVar(&prefix, "prefix", "", "prefix for every variable name, for example PM_")
+	command.Flags().BoolVar(&revealSecrets, "reveal-secrets", false, "export inline credential values instead of refusing them")
 	_ = command.MarkFlagRequired("env")
 	return command
 }

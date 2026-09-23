@@ -38,7 +38,7 @@ Cada etapa tem branch e PR próprios para `lab`.
 | Etapa | Status | Arquivo |
 | --- | --- | --- |
 | 01 | `done` | `steps/01-platform-modules-cutover.md` |
-| 02 | `todo` | `steps/02-export-env.md` |
+| 02 | `done` | `steps/02-export-env.md` |
 | 03 | `todo` | `steps/03-fixture-and-docs.md` |
 | 04 | `todo` | `steps/04-linux-binaries-and-closure.md` |
 

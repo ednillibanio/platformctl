@@ -135,3 +135,49 @@ func TestRenderRejectsUnknownFormat(t *testing.T) {
 		t.Fatal("expected unsupported format error")
 	}
 }
+
+func TestExportCommand(t *testing.T) {
+	root, err := filepath.Abs(filepath.Join("..", "..", "examples", "platform-home"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PLATFORMCTL_HOME", root)
+	run := func(args ...string) (string, error) {
+		t.Helper()
+		var stdout, stderr bytes.Buffer
+		command := NewWithIO(&stdout, &stderr)
+		command.SetArgs(args)
+		err := command.Execute()
+		return stdout.String(), err
+	}
+
+	output, err := run("export", "--env", "lab", "--service", "http", "--prefix", "PM_")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		"export PM_HTTP_LISTEN='0.0.0.0'",
+		"export PM_DOMAIN='lab.example.internal'",
+		`if [ -z "${PLATFORM_AUTOMATION_TOKEN:-}" ]`,
+		`export PM_AUTOMATION_TOKEN="$__platformctl_s1"`,
+	} {
+		if !strings.Contains(output, want) {
+			t.Fatalf("missing %q in export:\n%s", want, output)
+		}
+	}
+
+	for name, tc := range map[string]struct {
+		args []string
+		want string
+	}{
+		"host and service": {[]string{"export", "--env", "lab", "--host", "app", "--service", "http"}, "mutually exclusive"},
+		"format":           {[]string{"export", "--env", "lab", "--format", "json"}, "unsupported format"},
+		"unknown host":     {[]string{"export", "--env", "lab", "--host", "nope"}, `host "nope" not found`},
+		// The example stores a relative file reference, which the env projection refuses.
+		"relative file": {[]string{"export", "--env", "lab", "--host", "app"}, "must be absolute or start with ~/"},
+	} {
+		if _, err := run(tc.args...); err == nil || !strings.Contains(err.Error(), tc.want) {
+			t.Fatalf("%s: expected error containing %q, got %v", name, tc.want, err)
+		}
+	}
+}
