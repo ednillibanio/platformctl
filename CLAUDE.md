@@ -54,9 +54,8 @@ OS user config directory (see `internal/platformhome/home.go`). `init` and
 environments: it creates, validates, merges, and renders operator
 configuration but never invokes Vagrant, Ansible, Terraform, or any
 provisioner itself. It's intentionally a separate concern from
-`infrastructure-platform` (declarative catalog), `platform-modules` (automation
-library; successor to the archived `infra-gitops`, which `docs/ecosystem.md`
-still references), `provision-*` repos, and service CLIs like `glpictl` — those are
+`platform-catalog` (declarative catalog and ADRs), `platform-modules` (automation
+library; successor to the archived `infra-gitops`), `provision-*` repos, and service CLIs like `glpictl` — those are
 future consumers of the rendered model, not dependencies of this repo.
 
 ### Pipeline
@@ -135,7 +134,7 @@ equivalent yet.
 
 Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before any change that will be
 committed. It points to the ecosystem-wide standard
-(`infrastructure-platform/docs/standards/contribution-workflow.md`) and lists
+(`platform-catalog/docs/standards/contribution-workflow.md`) and lists
 the local rules. In short:
 
 - issue first (template in `.github/ISSUE_TEMPLATE/`, assigned to the
@@ -150,5 +149,6 @@ the local rules. In short:
 
 Cross-repository work (for example the platform configuration alignment with
 `platform-modules` and `platform-labs`) is coordinated from
-`infrastructure-platform`; see the corresponding entry in
+`platform-catalog` (`docs/architecture/platform-config-alignment.md` and
+`docs/architecture/decisions/`); see the corresponding entry in
 `iterations/BACKLOG.md` before starting it.

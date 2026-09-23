@@ -37,9 +37,9 @@ reject_text "${compose_file}" 'privileged:[[:space:]]*true' \
   'the lab container must not run privileged'
 reject_text "${compose_file}" '/var/run/docker\.sock' \
   'the lab container must not receive the Docker socket'
-reject_text "${compose_file}" 'infra-gitops|provision-glpi|glpictl' \
+reject_text "${compose_file}" 'infra-gitops|platform-modules|provision-glpi|glpictl' \
   'the lab must not depend on adjacent repositories'
-reject_text "${dockerfile}" 'infra-gitops|provision-glpi|glpictl' \
+reject_text "${dockerfile}" 'infra-gitops|platform-modules|provision-glpi|glpictl' \
   'the lab must not depend on adjacent repositories'
 
 printf '[PASS] Container lab contract tests completed.\n'

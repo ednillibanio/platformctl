@@ -62,7 +62,9 @@ separate live-mount procedure.
 - Consumer adapters for `provision-platform-environments`,
   `provision-semaphoreui`, `provision-nexus3`, and other `provision-*`
   repositories.
-- Runtime orchestration of `infra-gitops` modules or provisioning repositories.
+- Runtime orchestration of `platform-modules` or provisioning repositories.
+- The `export --format env` projection for `platform-modules`, planned by
+  the [platform configuration alignment program](https://github.com/ednillibanio/platform-catalog/blob/main/docs/architecture/platform-config-alignment.md).
 - Real provisioning through Ansible, Terraform, Packer, `govc`, or service
   CLIs.
 - Catalog import, Vault/secrets-manager integration, daemon/API, and graphical

@@ -1,11 +1,11 @@
 # Contributing
 
 The shared issue, branch, commit, and pull request workflow across the
-platform ecosystem (`infrastructure-platform`, `platform-modules`,
+platform ecosystem (`platform-catalog`, `platform-modules`,
 `provision-*`, `platformctl`, `platform-labs`) is documented at:
 
 ```text
-infrastructure-platform/docs/standards/contribution-workflow.md
+platform-catalog/docs/standards/contribution-workflow.md
 ```
 
 That document is normative; this file only records what is specific to
@@ -37,5 +37,5 @@ That document is normative; this file only records what is specific to
 - **Language:** code, CLI help, errors, logs, and `docs/` are in English;
   files under `iterations/` are in Portuguese.
 - **Cross-repository programs:** when work spans several repositories, the
-  coordinating document lives in `infrastructure-platform`; each repository
+  coordinating document lives in `platform-catalog`; each repository
   keeps only its own issue and iteration and links back to it.

@@ -84,7 +84,7 @@ authoritative. The main evidence locations are:
 is designed for downstream automation. The integration map links to the
 authoritative documentation in:
 
-- [`al-rr/infra-gitops`](https://github.com/al-rr/infra-gitops)
+- [`al-rr/platform-modules`](https://github.com/al-rr/platform-modules)
 - [`al-rr/provision-platform-environments`](https://github.com/al-rr/provision-platform-environments)
 - [`al-rr/provision-semaphoreui`](https://github.com/al-rr/provision-semaphoreui)
 - [`al-rr/provision-nexus3`](https://github.com/al-rr/provision-nexus3)

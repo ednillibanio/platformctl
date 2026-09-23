@@ -17,7 +17,7 @@ Pick whichever mechanism fits your host.
 | Teardown | `vagrant destroy -f` | `docker compose down -v` |
 
 Both intentionally validate committed examples rather than private operator
-configuration, and neither depends on `infra-gitops`, `provision-*`, or any
+configuration, and neither depends on `platform-modules`, `provision-*`, or any
 other adjacent repository.
 
 ## Shared validation contract
