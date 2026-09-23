@@ -305,3 +305,23 @@ Hosts are sorted by name. Each host contains:
 YAML is the default. JSON uses indented output and a final newline. Rendering
 is read-only and writes to standard output; file creation, permissions, and
 cleanup for redirected output belong to the caller.
+
+## Environment projection
+
+`export --format env` resolves a flat configuration instead of a per-host
+document:
+
+- without `--host`: `defaults → environment → each --service` in the order
+  given, with the same merge rules as rendering;
+- with `--host`: that host's normal resolution order.
+
+For `export`, `file` credential references gain a contract that `render`
+does not impose: they must be absolute paths or start with `~/`. A `~/`
+path resolves against `HOME` on the host that evaluates the output, so one
+configuration home can serve both a workstation and a controller or VM,
+provided the referenced files exist there. Plain values, including paths
+stored as values, are exported literally and are not `~`-expanded.
+
+See the [CLI reference](cli-reference.md#platformctl-export) for naming,
+types, and failure behavior, and `examples/platform-modules-home/` for a
+secret-free configuration that mirrors the `platform-modules` layers.

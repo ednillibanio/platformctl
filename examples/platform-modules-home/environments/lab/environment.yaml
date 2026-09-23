@@ -1,0 +1,17 @@
+# Mirrors ~/.config/platform-modules/overlays/lab/.
+apiVersion: platformctl.io/v1alpha1
+kind: Environment
+metadata:
+  name: lab
+spec:
+  values:
+    build:
+      username: vagrant
+    ansible:
+      # Public key and key path are not secret; paths stored as values are
+      # not ~-expanded, so they must be valid on the consuming host.
+      key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleOnlyNotARealKey000000000000000 platform-modules-lab
+      private_key_file: /home/vagrant/.config/assembleiarr/lab/credentials/platform-modules/id_ed25519
+  credentials:
+    build-password:
+      file: ~/.config/assembleiarr/lab/credentials/platform-modules/PM_BUILD_PASSWORD

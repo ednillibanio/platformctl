@@ -1,0 +1,20 @@
+# Mirrors ~/.config/platform-modules/overlays/lab/targets/vsphere-esxi.sh.
+apiVersion: platformctl.io/v1alpha1
+kind: Service
+metadata:
+  name: vsphere-esxi
+spec:
+  values:
+    vsphere:
+      endpoint: esxi01.lab.example.internal
+      username: root
+      insecure_connection: true
+      host: esxi01.lab.example.internal
+      datastore: DATASTORE_01
+      network: VM Network
+      folder: ""
+      resource_pool: ""
+      set_host_for_datastore_uploads: false
+  credentials:
+    vsphere-password:
+      file: ~/.config/assembleiarr/lab/credentials/platform-modules/PM_VSPHERE_PASSWORD

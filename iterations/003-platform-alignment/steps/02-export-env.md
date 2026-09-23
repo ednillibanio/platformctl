@@ -91,6 +91,21 @@ Tudo executado no container lab (`container/`), nunca no host:
   workspace dentro do container, porque a montagem do código é somente
   leitura, e revisado linha a linha antes de ser commitado
 
+### Revisão antes do merge (PR #29)
+
+A pedido do operador, revisei o próprio código antes do merge. Correções
+no terceiro commit do PR:
+
+- `EncodeEnv` valida o nome das referências `env` (identificador simples,
+  sem o prefixo interno `__platformctl_`), porque ele é interpolado no shell
+  gerado. Antes, dependia de o chamador ter validado o bundle.
+- Credencial com mais de uma forma (`env`/`file`/`value`) passou a ser erro.
+- O comentário do código agora diz bash, zsh e dash, em vez de POSIX
+  estrito, porque a saída usa `local`.
+
+CI verde em Ubuntu, macOS (zsh), Windows e no container lab. Merge em
+`lab` como `8a50739`.
+
 ## Pendências
 
 - `zsh` não existe no container lab, mas o runner macOS do CI tem. Na

@@ -18,6 +18,9 @@ release guarantee; the public configuration API remains `v1alpha1`.
   services, and host overrides.
 - Immutable recursive map merge and shallow credential replacement.
 - Deterministic YAML and JSON rendering.
+- `export --format env` shell projection (ADR-0002): service or host
+  selection, prefixed names, all-or-nothing credential resolution by the
+  evaluating shell.
 - Credential forms `env`, `file`, and inline `value`; inline values are
   redacted by default and revealed only with `render --reveal-secrets`.
 - Embedded JSON Schemas for configuration and rendered environments.
@@ -63,8 +66,8 @@ separate live-mount procedure.
   `provision-semaphoreui`, `provision-nexus3`, and other `provision-*`
   repositories.
 - Runtime orchestration of `platform-modules` or provisioning repositories.
-- The `export --format env` projection for `platform-modules`, planned by
-  the [platform configuration alignment program](https://github.com/ednillibanio/platform-catalog/blob/main/docs/architecture/platform-config-alignment.md).
+- Adoption of the `export` projection by `platform-modules` (phase 3 of the
+  [platform configuration alignment program](https://github.com/ednillibanio/platform-catalog/blob/main/docs/architecture/platform-config-alignment.md)).
 - Real provisioning through Ansible, Terraform, Packer, `govc`, or service
   CLIs.
 - Catalog import, Vault/secrets-manager integration, daemon/API, and graphical

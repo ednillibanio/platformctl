@@ -17,6 +17,8 @@ provisioner.
 - Published releases: none; build from source
 - Supported development hosts: Linux, macOS, and Windows
 - Render formats: YAML (default) and JSON
+- Shell projection: `export --format env` (for example `PM_*` for
+  `platform-modules`)
 
 See [implementation progress](docs/progress.md) for completed capabilities,
 validation coverage, and deferred work.
