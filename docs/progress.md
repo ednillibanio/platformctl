@@ -66,8 +66,9 @@ separate live-mount procedure.
   `provision-semaphoreui`, `provision-nexus3`, and other `provision-*`
   repositories.
 - Runtime orchestration of `platform-modules` or provisioning repositories.
-- Adoption of the `export` projection by `platform-modules` (phase 3 of the
-  [platform configuration alignment program](https://github.com/ednillibanio/platform-catalog/blob/main/docs/architecture/platform-config-alignment.md)).
+- Adoption of the `export` projection by `platform-modules`: not planned;
+  the [platform configuration alignment program](https://github.com/ednillibanio/platform-catalog/blob/main/docs/architecture/platform-config-alignment.md)
+  was paused on 2026-09-23.
 - Real provisioning through Ansible, Terraform, Packer, `govc`, or service
   CLIs.
 - Catalog import, Vault/secrets-manager integration, daemon/API, and graphical
