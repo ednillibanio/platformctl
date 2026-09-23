@@ -136,8 +136,9 @@ func TestEncodeEnvEvaluatesInShells(t *testing.T) {
 
 	for _, shell := range shells {
 		t.Run(shell, func(t *testing.T) {
-			script := `eval "$EXPORT"; status=$?
-printf 'status=%s\n' "$status"
+			// "rc", not "status": status is read-only in zsh.
+			script := `eval "$EXPORT"; rc=$?
+printf 'status=%s\n' "$rc"
 printf 'endpoint=[%s]\n' "${PM_VSPHERE_ENDPOINT-unset}"
 printf 'insecure=[%s]\n' "${PM_VSPHERE_INSECURE_CONNECTION-unset}"
 printf 'folder=[%s]\n' "${PM_VSPHERE_FOLDER-unset}"
@@ -146,6 +147,7 @@ printf 'motd=[%s]\n' "${PM_MOTD-unset}"
 printf 'vsphere=[%s]\n' "${PM_VSPHERE_PASSWORD-unset}"
 printf 'build=[%s]\n' "${PM_BUILD_PASSWORD-unset}"
 printf 'github=[%s]\n' "${PM_GITHUB_TOKEN-unset}"
+if command -v __platformctl_export >/dev/null 2>&1; then printf 'leaked\n'; fi
 printf 'alive\n'
 `
 			run := func(export []byte, extraEnv ...string) string {
@@ -166,8 +168,8 @@ printf 'alive\n'
 					t.Fatalf("missing %q in output:\n%s", want, output)
 				}
 			}
-			if strings.Contains(output, "__platformctl_export") {
-				t.Fatalf("helper function leaked:\n%s", output)
+			if strings.Contains(output, "leaked") {
+				t.Fatalf("helper function still defined after evaluation:\n%s", output)
 			}
 
 			for label, failing := range map[string]struct {
@@ -183,6 +185,9 @@ printf 'alive\n'
 					if !strings.Contains(output, want) {
 						t.Fatalf("%s: missing %q in output:\n%s", label, want, output)
 					}
+				}
+				if strings.Contains(output, "leaked") {
+					t.Fatalf("%s: helper function still defined after failure:\n%s", label, output)
 				}
 			}
 		})

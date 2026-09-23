@@ -93,6 +93,9 @@ Tudo executado no container lab (`container/`), nunca no host:
 
 ## Pendências
 
-- `zsh` não existe no container lab, então a avaliação em zsh fica para o
-  teste na VM ou num host com zsh (fase 3).
+- `zsh` não existe no container lab, mas o runner macOS do CI tem. Na
+  primeira execução do CI, o zsh derrubou o próprio teste, porque `status` é
+  uma variável somente leitura no zsh; o problema era do script de teste, não
+  da saída do `export`. O teste passou a usar `rc` e a verificar que a função
+  temporária não fica definida depois do `eval`, em sucesso ou em falha.
 - Documentação do `export` (`docs/cli-reference.md` e outros) na etapa 03.
