@@ -55,9 +55,14 @@ o exemplo em `examples/platform-home`. Pré-requisito para o item acima.
 
 ## Programa: alinhamento da configuração da plataforma
 
-Status: `doing` — fases 0a, 0 e 1 concluídas em 2026-09-23; fase 2 em
-`iterations/003-platform-alignment/` (#27). Acompanhamento oficial em
-`platform-catalog` `docs/architecture/platform-config-alignment.md`.
+Status: `skipped` — pausado pelo operador em 2026-09-23, depois da fase 2
+(`iterations/003-platform-alignment/`, #27). O `platformctl` fica como
+está; o `platform-modules` mantém a própria configuração; valores
+compartilhados continuam com cópia manual até o SemaphoreUI assumir esse
+papel. Correções que não dependem do `platformctl` seguem como issues comuns
+nos repositórios donos. Registro oficial em `platform-catalog`
+`docs/architecture/platform-config-alignment.md` (seção "Decision: program
+paused").
 
 Objetivo: tornar `platformctl` a fonte única de valores e referências de
 credenciais por ambiente da plataforma (catálogo, módulos, labs, serviços),

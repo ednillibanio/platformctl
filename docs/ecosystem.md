@@ -15,8 +15,8 @@ PLATFORMCTL_HOME -> platformctl export   -> shell exports (for example PM_*)
 ```
 
 The `export` projection is the contract that `platform-modules` is planned to
-consume (ADR-0002/0003); its adoption there is phase 3 of the alignment
-program and has not happened yet.
+consume (ADR-0002/0003). That program was paused on 2026-09-23, so no
+adoption is planned; `platform-modules` keeps its own configuration.
 
 The rendered document is ready for downstream consumption, but this repository
 does not currently ship adapters for `provision-platform-environments`,
@@ -97,8 +97,8 @@ bootstrap-config` manages the library's own configuration tree under
 `~/.config/platform-modules` (layered `vars.sh`/`credentials.sh` files that
 export `PM_*` variables). That tree is still separate from `PLATFORMCTL_HOME`.
 
-The [platform configuration alignment program][alignment] changes this
-relationship:
+The [platform configuration alignment program][alignment] explored changing
+this relationship. It was paused on 2026-09-23, and these ADRs are on hold:
 
 - [ADR-0001][adr-0001] makes `platformctl` the single source of
   per-environment values.
@@ -107,8 +107,7 @@ relationship:
 - [ADR-0003][adr-0003] migrates away from `bootstrap-config` in reversible
   stages.
 
-Until those stages land, treat the two trees as independent. They are not
-aliases.
+Treat the two trees as independent. They are not aliases.
 
 [pm-repo]: https://github.com/al-rr/platform-modules
 [alignment]: https://github.com/ednillibanio/platform-catalog/blob/main/docs/architecture/platform-config-alignment.md

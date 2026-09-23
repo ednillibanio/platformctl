@@ -1,6 +1,6 @@
 # Etapa: Binários Linux e fechamento
 
-Status: `todo`
+Status: `done`
 
 ## Objetivo
 
@@ -32,12 +32,21 @@ cd container && ./lab.sh up && ./lab.sh status
 
 ## Resultado
 
-Preencher ao concluir a etapa.
+- Binários Linux: `skipped` por decisão do operador em 2026-09-23. O teste
+  na VM do Packer (fase 3) foi cancelado junto com o restante do programa,
+  então não há consumidor para os binários.
+- Fechamento: iteração 003 concluída; etapas 01–03 integradas em `lab`
+  (PRs #28, #29, #30); programa marcado como pausado aqui
+  (`iterations/BACKLOG.md`) e no `platform-catalog` (PR #22).
 
 ## Evidências
 
-Preencher ao concluir a etapa.
+- `platform-catalog` #22 mergeado (`2436350`): ADR-0004, fases 3–5
+  `cancelled` e ADR-0001..0004 `on hold`.
+- `docs/ecosystem.md` e `docs/progress.md` não descrevem mais a adoção pelo
+  `platform-modules` como planejada.
 
 ## Pendências
 
-Preencher ao concluir a etapa.
+- Nenhuma nesta iteração. A promoção `lab` → `main` do platformctl fica a
+  critério do operador.
