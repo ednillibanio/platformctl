@@ -35,7 +35,7 @@ PLATFORMCTL_HOME ──> platformctl render ──> provision-* / automation ada
 The adapters that translate rendered data into repository-specific manifests,
 inventories, or secret files are separate integration work. See
 [Ecosystem and integrations](docs/ecosystem.md) for the current boundaries and
-the relationships with `infra-gitops`, `provision-platform-environments`,
+the relationships with `platform-modules`, `provision-platform-environments`,
 `provision-semaphoreui`, and `provision-nexus3`.
 
 ## Quick verification from source

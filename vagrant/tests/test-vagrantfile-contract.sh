@@ -44,7 +44,7 @@ require_text "${provisioner}" 'write_status ready validation_completed' 'success
 
 reject_text "${vagrantfile}" 'forward_agent|id_(rsa|ed25519)|PRIVATE KEY' \
   'the test VM must not receive operator SSH identities'
-reject_text "${vagrantfile}" 'infra-gitops|provision-glpi|glpictl' \
+reject_text "${vagrantfile}" 'infra-gitops|platform-modules|provision-glpi|glpictl' \
   'the test VM must not depend on adjacent repositories'
 
 printf '[PASS] Vagrantfile contract tests completed.\n'

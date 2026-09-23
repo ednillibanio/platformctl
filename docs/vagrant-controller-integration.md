@@ -29,7 +29,7 @@ This integration currently provides:
 - `platformctl validate` and `platformctl render` when the Linux binary is
   installed in the controller.
 
-It does not yet install platformctl or make `infra-gitops` and `provision-*`
+It does not yet install platformctl or make `platform-modules` and `provision-*`
 consume the rendered model. Those are separate adapters planned after the
 configuration contract stabilizes.
 

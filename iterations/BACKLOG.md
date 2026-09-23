@@ -55,8 +55,9 @@ o exemplo em `examples/platform-home`. Pré-requisito para o item acima.
 
 ## Programa: alinhamento da configuração da plataforma
 
-Status: `todo` — plano aprovado em 2026-09-23; execução por fases, cada uma
-com issue e iteração no repositório dono, seguindo `CONTRIBUTING.md`.
+Status: `doing` — fases 0a, 0 e 1 concluídas em 2026-09-23; fase 2 em
+`iterations/003-platform-alignment/` (#27). Acompanhamento oficial em
+`platform-catalog` `docs/architecture/platform-config-alignment.md`.
 
 Objetivo: tornar `platformctl` a fonte única de valores e referências de
 credenciais por ambiente da plataforma (catálogo, módulos, labs, serviços),
@@ -69,8 +70,8 @@ Decisões já tomadas:
 
 - `platformctl` absorve valores/credenciais do `modulesctl bootstrap-config`,
   com ponte de compatibilidade antes de qualquer depreciação;
-- o repositório de catálogo (`infrastructure-platform`, remoto
-  `infra-platform`) será renomeado para `platform-catalog`;
+- o repositório de catálogo (antes `infrastructure-platform`/`infra-platform`)
+  foi renomeado para `platform-catalog` em 2026-09-23;
 - o documento do programa e os ADRs ficam no catálogo; este backlog só
   aponta para eles.
 

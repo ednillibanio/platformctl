@@ -15,7 +15,7 @@ PLATFORMCTL_HOME -> platformctl validate -> platformctl render -> YAML or JSON
 
 The rendered document is ready for downstream consumption, but this repository
 does not currently ship adapters for `provision-platform-environments`,
-`provision-semaphoreui`, `provision-nexus3`, `infra-gitops`, or another
+`provision-semaphoreui`, `provision-nexus3`, `platform-modules`, or another
 `provision-*` repository. Those repositories also do not currently invoke
 `platformctl` in their committed workflows.
 
@@ -39,7 +39,9 @@ and Vagrant labs are development-only dependencies, not integration adapters.
 The repository links below deliberately point to the related repositories'
 `lab` branches, where their pre-promotion integration contracts are reviewed.
 On 2026-08-28, each linked repository, branch, and referenced document was
-verified through GitHub. The related repositories use `main` as their default
+verified through GitHub; the `platform-modules` and `platform-catalog` links
+were re-verified on 2026-09-23. `platform-catalog` has no `lab` branch, so its
+links point to `main`. The related repositories use `main` as their default
 branch, so use the linked `lab` material when evaluating a change that will be
 integrated through `lab`; do not infer a runtime dependency from those links.
 
@@ -54,8 +56,8 @@ step automatically.
 
 | Repository | Authoritative responsibility | Real values? | Executes changes? | Relationship to `platformctl` |
 | --- | --- | --- | --- | --- |
-| `infrastructure-platform` | Public catalog and governance: what exists, ownership, and cross-repository standards. | No operational values. | No. | Conceptual catalog; no current runtime integration. |
-| [`al-rr/infra-gitops`](https://github.com/al-rr/infra-gitops) | Reusable Bash, Ansible, Terraform, Packer, and container automation modules. | Only its own scoped operator configuration. | Library content is executed by consumers. | Future provisioners can combine its modules with a `platformctl` render. |
+| [`platform-catalog`](https://github.com/ednillibanio/platform-catalog) | Catalog and governance: what exists, ownership, cross-repository standards, and architecture decisions (ADRs). | No operational values. | No. | Governs environment names and the configuration contract; no runtime integration. |
+| [`al-rr/platform-modules`](https://github.com/al-rr/platform-modules) | Reusable Bash, Ansible, Terraform, Packer, and container automation modules (successor to the archived `infra-gitops`). | Today its own operator tree (`~/.config/platform-modules`); planned to consume `platformctl export` instead. | Library content is executed by consumers. | First consumer of the planned `export` environment projection (ADR-0002/0003). |
 | [`platformctl`](https://github.com/ednillibanio/platformctl) | Private layered values and credential references/values per environment. | Yes, by design. | No infrastructure or remote APIs. | Produces the neutral YAML/JSON handoff. |
 | [`al-rr/provision-platform-environments`](https://github.com/al-rr/provision-platform-environments) | Declarative GitHub Environment variables and secret names, reconciled through `platform-environments-ctl`. | Non-secret values in manifests; secret values arrive from local files at apply time. | Yes, against the GitHub API after operator approval. | Candidate consumer for artifact/Nexus values and credential references; adapter not implemented. |
 | [`al-rr/provision-semaphoreui`](https://github.com/al-rr/provision-semaphoreui) | SemaphoreUI container lifecycle and declarative Project/Repository/Inventory/Environment/Template reconciliation. | Secret-free manifests plus operator-supplied secret files. | Yes, against Docker and the Semaphore API. | Candidate consumer for host, Nexus, and deployment values; adapter not implemented. |
@@ -66,8 +68,8 @@ step automatically.
 
 ```mermaid
 flowchart LR
-    C["infrastructure-platform<br/>catalog and governance"] -. governs .-> P
-    I["infra-gitops<br/>reusable automation"] --> P
+    C["platform-catalog<br/>catalog and governance"] -. governs .-> P
+    I["platform-modules<br/>reusable automation"] --> P
     H["PLATFORMCTL_HOME<br/>private desired values"] --> R["platformctl render<br/>deterministic YAML/JSON"]
     R --> A["consumer-specific adapter<br/>not implemented here"]
     A --> P["provision-* or control repository"]
@@ -82,22 +84,38 @@ documented and validated there.
 
 ## Cross-repository contracts
 
-### `infra-gitops`
+### `platform-modules`
 
-[`infra-gitops`](https://github.com/al-rr/infra-gitops) is the reusable
-automation library. Its `gitopsctl bootstrap-config` manages the library's own
-configuration tree under `~/.config/infra-gitops`; that tree is separate from
-`PLATFORMCTL_HOME` and should not be presented as an alias or replacement.
+[`platform-modules`][pm-repo] is the reusable automation library and the
+successor to the archived `infra-gitops`. Today its `modulesctl
+bootstrap-config` manages the library's own configuration tree under
+`~/.config/platform-modules` (layered `vars.sh`/`credentials.sh` files that
+export `PM_*` variables). That tree is still separate from `PLATFORMCTL_HOME`.
+
+The [platform configuration alignment program][alignment] changes this
+relationship:
+
+- [ADR-0001][adr-0001] makes `platformctl` the single source of
+  per-environment values.
+- [ADR-0002][adr-0002] defines a `platformctl export --format env --prefix PM_`
+  projection that `platform-modules` can evaluate without code changes.
+- [ADR-0003][adr-0003] migrates away from `bootstrap-config` in reversible
+  stages.
+
+Until those stages land, treat the two trees as independent. They are not
+aliases.
+
+[pm-repo]: https://github.com/al-rr/platform-modules
+[alignment]: https://github.com/ednillibanio/platform-catalog/blob/main/docs/architecture/platform-config-alignment.md
+[adr-0001]: https://github.com/ednillibanio/platform-catalog/blob/main/docs/architecture/decisions/0001-platform-planes-and-responsibilities.md
+[adr-0002]: https://github.com/ednillibanio/platform-catalog/blob/main/docs/architecture/decisions/0002-configuration-contract.md
+[adr-0003]: https://github.com/ednillibanio/platform-catalog/blob/main/docs/architecture/decisions/0003-migrate-modulesctl-bootstrap-config.md
 
 Authoritative starting points:
 
-- [infra-gitops README](https://github.com/al-rr/infra-gitops/blob/lab/README.md)
-- [Ansible external configuration](https://github.com/al-rr/infra-gitops/blob/lab/docs/en/ansible-external-configuration.md)
-- [Project-local Ansible environment](https://github.com/al-rr/infra-gitops/blob/lab/docs/en/ansible-project-environment.md)
-
-A future provisioner can read a `platformctl` render for desired values while
-using `infra-gitops` modules for execution mechanics. Neither repository needs
-to absorb the other's configuration ownership.
+- [platform-modules README](https://github.com/al-rr/platform-modules/blob/lab/README.md)
+- [Ansible external configuration](https://github.com/al-rr/platform-modules/blob/lab/docs/en/ansible-external-configuration.md)
+- [Project-local Ansible environment](https://github.com/al-rr/platform-modules/blob/lab/docs/en/ansible-project-environment.md)
 
 ### `provision-platform-environments`
 
@@ -139,7 +157,7 @@ the consumed playbook. A direct field-name copy is not a sufficient contract.
 [`provision-nexus3`](https://github.com/al-rr/provision-nexus3) owns real Nexus3
 deployment, repository configuration, roles, and technical accounts. It
 consumes the `assembleiarr.services.nexus3` Ansible Collection from
-`infra-gitops`.
+`platform-modules`.
 
 Authoritative starting points:
 
@@ -185,7 +203,7 @@ Each adapter should:
 ## What `platformctl` is not
 
 - It is not the public catalog or ownership registry.
-- It is not the `infra-gitops` reusable automation library.
+- It is not the `platform-modules` reusable automation library.
 - It is not a GitHub Environment, SemaphoreUI, Nexus, Terraform, or Ansible
   client.
 - It does not automatically synchronize other repositories.
