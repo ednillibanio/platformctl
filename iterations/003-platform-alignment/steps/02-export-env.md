@@ -1,6 +1,6 @@
 # Etapa: Comando export com formato env
 
-Status: `todo`
+Status: `done`
 
 ## Objetivo
 
@@ -17,9 +17,8 @@ Implementar `platformctl export --env <env> [--service <name>]... [--host
 - nomes: segmentos unidos por `_`, `-` e `.` viram `_`, maiúsculas, prefixo
 - tipos: string, número e booleano; lista, `null` e mapa vazio geram erro;
   colisão de nomes gera erro
-- segredos: `env` → `${VAR:?}`; `file` → atribuição e `export` separados,
-  falha em arquivo ilegível, `~/` resolvido via `HOME`; `value` recusado sem
-  `--reveal-secrets`
+- segredos: `env` exige variável definida e não vazia; `file` lido com
+  `cat`, `~/` resolvido via `HOME`; `value` recusado sem `--reveal-secrets`
 - saída ordenada, determinística, com aspas simples escapadas
 
 ## Fora de Escopo
@@ -43,12 +42,57 @@ cd container && ./lab.sh up && ./lab.sh status
 
 ## Resultado
 
-Preencher ao concluir a etapa.
+- `internal/render/select.go`: `ResolveServices` (defaults → environment →
+  serviços na ordem dada, erro para serviço inexistente ou repetido) e
+  `HostConfig`.
+- `internal/render/env.go`: `EncodeEnv` com nomes, tipos, colisões e
+  aspas conforme o ADR-0002.
+- `internal/cli/cli.go`: comando `export` (`--env`, `--service`
+  repetível, `--host`, `--format env`, `--prefix`, `--reveal-secrets`).
+- `.gitattributes`: `*.golden` sempre com LF, para o CI do Windows.
+
+**Ajuste em relação ao texto do ADR-0002.** O ADR mostra `${VAR:?}` para
+`env` e atribuição seguida de `export` para `file`. Na prática:
+
+- `${VAR:?}` encerra um shell não interativo;
+- um `|| false` solto não muda o status final do `eval`.
+
+A saída passou a ser uma função temporária que:
+
+1. lê todos os segredos em variáveis locais, com `return 1` na primeira falha;
+2. só então exporta tudo;
+3. remove a si mesma.
+
+Resultado: ou tudo é exportado ou nada, o status fica diferente de zero e o
+shell do chamador continua vivo. A correção do texto do ADR entra no PR do
+catálogo da etapa 03.
 
 ## Evidências
 
-Preencher ao concluir a etapa.
+Tudo executado no container lab (`container/`), nunca no host:
+
+- `./lab.sh up` → bootstrap, `vet`, `test ./...` e build verdes;
+  `./lab.sh status` → `status=ready`, `result_code=0`
+- `gofmt -l ./internal ./cmd` → vazio; `go vet ./...` → ok
+- testes novos, todos `PASS`:
+  - `TestEncodeEnvGolden` (`internal/render/testdata/export-env.golden`)
+  - `TestEncodeEnvRejectsUnexportableInput` (11 casos)
+  - `TestEncodeEnvRevealSecrets`
+  - `TestEncodeEnvEvaluatesInShells` (subtestes `bash` e `sh`)
+  - `TestResolveServicesOrderAndErrors`
+  - `TestExportCommand`
+- `TestEncodeEnvEvaluatesInShells` avalia a saída em shells reais e
+  confirma:
+  - aspas e quebras de linha preservadas;
+  - `~/` resolvido via `HOME`;
+  - com arquivo ausente ou variável não definida, `status=1`, nenhuma
+    variável exportada e o shell continua executando
+- o golden foi gerado com `UPDATE_GOLDEN=1` numa cópia gravável do
+  workspace dentro do container, porque a montagem do código é somente
+  leitura, e revisado linha a linha antes de ser commitado
 
 ## Pendências
 
-Preencher ao concluir a etapa.
+- `zsh` não existe no container lab, então a avaliação em zsh fica para o
+  teste na VM ou num host com zsh (fase 3).
+- Documentação do `export` (`docs/cli-reference.md` e outros) na etapa 03.
