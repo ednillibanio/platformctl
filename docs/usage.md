@@ -201,6 +201,32 @@ Nothing provisions or applies this output. It's meant to be consumed by
 whatever tool actually acts on it — see [Ecosystem](ecosystem.md) for where
 that fits and for the current integration limitations.
 
+## 6. Export for shell consumers
+
+Some consumers read environment variables instead of a rendered document.
+`platform-modules` is one of them: its tools read `PM_*` variables. Model the
+tool's layers as services and export them:
+
+```bash
+PLATFORMCTL_HOME="${PWD}/examples/platform-modules-home" \
+  platformctl export --env lab \
+    --service vsphere-esxi --service packer --prefix PM_
+```
+
+That example maps `base/` to `defaults.yaml`, the `lab` overlay to
+`environment.yaml`, the vSphere target to `services/vsphere-esxi.yaml`, and the
+Packer module layer to `services/packer.yaml`. To use the result, evaluate it
+in the shell that runs the tool:
+
+```bash
+eval "$(platformctl export --env lab \
+  --service vsphere-esxi --service packer --prefix PM_)"
+```
+
+Credential files are read by that shell at that moment. If any of them is
+missing, nothing is exported and the command fails. See
+[`platformctl export`](cli-reference.md#platformctl-export).
+
 ## Field reference
 
 | Kind | Required fields | Optional fields |

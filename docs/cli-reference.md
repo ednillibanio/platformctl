@@ -17,6 +17,7 @@ platformctl <command> [flags]
 | `environment init <env>` | Initialize one environment directory. | Yes, local files only. |
 | `validate --env <env>` | Parse and validate one environment. | No. |
 | `render --env <env>` | Validate and render one effective environment. | No; writes only to standard output. |
+| `export --env <env>` | Validate and project resolved values as shell `export` statements. | No; writes only to standard output. |
 | `completion <shell>` | Generate Cobra shell-completion output. | No; installation is left to the caller. |
 | `help [command]` | Show command help. | No. |
 
@@ -156,6 +157,51 @@ terminal scrollback, shared logs, CI artifacts, and world-readable files.
 The render preserves `env` and `file` references exactly and never reads their
 targets. Host order and resolved source addresses are deterministic. Declared
 service order and address order are preserved where order is meaningful.
+
+## `platformctl export`
+
+```text
+platformctl export --env <env> [--service <name>]... [--host <name>]
+                   [--format env] [--prefix <PREFIX>] [--reveal-secrets]
+```
+
+Export validates first and prints shell code that exports one variable per
+resolved leaf value and per credential. It serves consumers that read
+environment variables, such as `platform-modules` (`PM_*`). The contract is
+[ADR-0002](https://github.com/ednillibanio/platform-catalog/blob/main/docs/architecture/decisions/0002-configuration-contract.md).
+
+| Flag | Required | Default | Effect |
+| --- | --- | --- | --- |
+| `--env` | Yes | — | Selects one environment. |
+| `--service` | No | none | Service layer to apply after defaults and the environment. Repeatable; applied in the order given. |
+| `--host` | No | — | Exports one host's resolved configuration instead. Mutually exclusive with `--service`. |
+| `--format` | No | `env` | Only `env` is supported. |
+| `--prefix` | No | empty | Prepended to every variable name, for example `PM_`. |
+| `--reveal-secrets` | No | `false` | Allows inline credential `value` fields, emitted as literals. Without it they are refused. |
+
+Evaluate the output; never store it:
+
+```bash
+eval "$(platformctl export --env lab \
+  --service vsphere-esxi --service packer --prefix PM_)"
+```
+
+- Names flatten the value path with `_` (`-` and `.` also become `_`) and are
+  upper-cased: `vsphere.endpoint` becomes `PM_VSPHERE_ENDPOINT`.
+- Strings, numbers, and booleans are exported. Lists, `null`, empty maps,
+  invalid names, and two sources producing the same name are errors.
+- `platformctl` never reads secrets. An `env` credential is copied from the
+  named variable by the evaluating shell. A `file` credential is read with
+  `cat` by that shell; it must be absolute or start with `~/`, which resolves
+  against `HOME` on the evaluating host.
+- All secrets are read before anything is exported. If a referenced variable
+  is unset or empty, or a file is unreadable, the evaluation prints the cause
+  to standard error, exports nothing, and returns a non-zero status. It does
+  not terminate an interactive shell; under `set -e` it stops the script.
+- The output targets bash, zsh, and dash.
+
+Evaluating the output runs `cat` on paths taken from `PLATFORMCTL_HOME`, so
+that tree must be as trusted as a shell profile.
 
 ## Completion
 

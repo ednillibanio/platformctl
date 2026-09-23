@@ -11,7 +11,12 @@ The stable handoff available today is:
 
 ```text
 PLATFORMCTL_HOME -> platformctl validate -> platformctl render -> YAML or JSON
+PLATFORMCTL_HOME -> platformctl export   -> shell exports (for example PM_*)
 ```
+
+The `export` projection is the contract that `platform-modules` is planned to
+consume (ADR-0002/0003); its adoption there is phase 3 of the alignment
+program and has not happened yet.
 
 The rendered document is ready for downstream consumption, but this repository
 does not currently ship adapters for `provision-platform-environments`,
