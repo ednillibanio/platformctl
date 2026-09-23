@@ -223,8 +223,11 @@ eval "$(platformctl export --env lab \
   --service vsphere-esxi --service packer --prefix PM_)"
 ```
 
-Credential files are read by that shell at that moment. If any of them is
-missing, nothing is exported and the command fails. See
+Credential files and variables are read by that shell at that moment. The
+example references `GITHUB_TOKEN` and two files under
+`~/.config/assembleiarr/lab/credentials/platform-modules/`. If a file is
+missing or unreadable, or the variable is unset or empty, nothing is exported
+and the command fails. See
 [`platformctl export`](cli-reference.md#platformctl-export).
 
 ## Field reference
