@@ -61,17 +61,20 @@ func TestEncodeEnvRejectsUnexportableInput(t *testing.T) {
 		opts EnvOptions
 		want string
 	}{
-		"list":        {cfg: config.RenderedConfig{Values: map[string]any{"hosts": []any{"a"}}}, want: "lists cannot be exported"},
-		"null":        {cfg: config.RenderedConfig{Values: map[string]any{"x": nil}}, want: "null cannot be exported"},
-		"empty map":   {cfg: config.RenderedConfig{Values: map[string]any{"x": map[string]any{}}}, want: "empty map"},
-		"bad name":    {cfg: config.RenderedConfig{Values: map[string]any{"1st": "a"}}, want: "not a valid shell variable name"},
-		"space name":  {cfg: config.RenderedConfig{Values: map[string]any{"a b": "a"}}, opts: EnvOptions{Prefix: "PM_"}, want: "not a valid shell variable name"},
-		"bad prefix":  {cfg: config.RenderedConfig{}, opts: EnvOptions{Prefix: "PM-"}, want: "invalid prefix"},
-		"relative":    {cfg: config.RenderedConfig{Credentials: map[string]config.SecretRef{"k": {File: "credentials/k"}}}, want: "must be absolute or start with ~/"},
-		"inline":      {cfg: config.RenderedConfig{Credentials: map[string]config.SecretRef{"k": {Value: "s3cret"}}}, want: "--reveal-secrets"},
-		"collision":   {cfg: config.RenderedConfig{Values: map[string]any{"a": map[string]any{"b": "1"}, "a-b": "2"}}, want: "both export A_B"},
-		"value+cred":  {cfg: config.RenderedConfig{Values: map[string]any{"token": "x"}, Credentials: map[string]config.SecretRef{"token": {Env: "T"}}}, want: "both export TOKEN"},
-		"unsupported": {cfg: config.RenderedConfig{Values: map[string]any{"x": struct{}{}}}, want: "unsupported type"},
+		"list":          {cfg: config.RenderedConfig{Values: map[string]any{"hosts": []any{"a"}}}, want: "lists cannot be exported"},
+		"null":          {cfg: config.RenderedConfig{Values: map[string]any{"x": nil}}, want: "null cannot be exported"},
+		"empty map":     {cfg: config.RenderedConfig{Values: map[string]any{"x": map[string]any{}}}, want: "empty map"},
+		"bad name":      {cfg: config.RenderedConfig{Values: map[string]any{"1st": "a"}}, want: "not a valid shell variable name"},
+		"space name":    {cfg: config.RenderedConfig{Values: map[string]any{"a b": "a"}}, opts: EnvOptions{Prefix: "PM_"}, want: "not a valid shell variable name"},
+		"bad prefix":    {cfg: config.RenderedConfig{}, opts: EnvOptions{Prefix: "PM-"}, want: "invalid prefix"},
+		"relative":      {cfg: config.RenderedConfig{Credentials: map[string]config.SecretRef{"k": {File: "credentials/k"}}}, want: "must be absolute or start with ~/"},
+		"inline":        {cfg: config.RenderedConfig{Credentials: map[string]config.SecretRef{"k": {Value: "s3cret"}}}, want: "--reveal-secrets"},
+		"collision":     {cfg: config.RenderedConfig{Values: map[string]any{"a": map[string]any{"b": "1"}, "a-b": "2"}}, want: "both export A_B"},
+		"value+cred":    {cfg: config.RenderedConfig{Values: map[string]any{"token": "x"}, Credentials: map[string]config.SecretRef{"token": {Env: "T"}}}, want: "both export TOKEN"},
+		"unsupported":   {cfg: config.RenderedConfig{Values: map[string]any{"x": struct{}{}}}, want: "unsupported type"},
+		"env injection": {cfg: config.RenderedConfig{Credentials: map[string]config.SecretRef{"k": {Env: "A;touch /tmp/x"}}}, want: "invalid environment variable"},
+		"env internal":  {cfg: config.RenderedConfig{Credentials: map[string]config.SecretRef{"k": {Env: "__platformctl_s1"}}}, want: "invalid environment variable"},
+		"two forms":     {cfg: config.RenderedConfig{Credentials: map[string]config.SecretRef{"k": {Env: "A", File: "/x"}}}, want: "exactly one"},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {

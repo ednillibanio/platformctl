@@ -17,7 +17,10 @@ type EnvOptions struct {
 	RevealSecrets bool
 }
 
-const envFunction = "__platformctl_export"
+const (
+	envFunction = "__platformctl_export"
+	localPrefix = "__platformctl_"
+)
 
 var shellNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
@@ -31,9 +34,10 @@ type envEntry struct {
 	isFile    bool
 }
 
-// EncodeEnv projects a resolved configuration into POSIX shell that exports
-// one variable per leaf value and per credential. The output is meant to be
-// evaluated (eval or source), never stored.
+// EncodeEnv projects a resolved configuration into shell code that exports
+// one variable per leaf value and per credential. The output targets bash,
+// zsh, and dash (it relies on the widely supported "local" builtin) and is
+// meant to be evaluated (eval or source), never stored.
 //
 // Credential references are resolved by the evaluating shell, never by
 // platformctl: env references are copied from the named variable and file
@@ -55,8 +59,22 @@ func EncodeEnv(cfg config.RenderedConfig, opts EnvOptions) ([]byte, error) {
 			return nil, fmt.Errorf("credential %q: %w", name, err)
 		}
 		entry := envEntry{origin: "credential " + strconv.Quote(name)}
+		forms := 0
+		for _, form := range []string{ref.Env, ref.File, ref.Value} {
+			if form != "" {
+				forms++
+			}
+		}
+		if forms > 1 {
+			return nil, fmt.Errorf("credential %q must set exactly one of env, file, or value", name)
+		}
 		switch {
 		case ref.Env != "":
+			// The name is interpolated into shell code, so it must be a plain
+			// identifier even when the caller skipped bundle validation.
+			if !shellNamePattern.MatchString(ref.Env) || strings.HasPrefix(ref.Env, localPrefix) {
+				return nil, fmt.Errorf("credential %q references invalid environment variable %q", name, ref.Env)
+			}
 			entry.isEnv, entry.envSource = true, ref.Env
 		case ref.File != "":
 			if _, err := shellPath(ref.File); err != nil {
@@ -177,7 +195,7 @@ func writeEnv(entries map[string]envEntry) []byte {
 	var localNames []string
 	for _, name := range names {
 		if entry := entries[name]; entry.isEnv || entry.isFile {
-			local := fmt.Sprintf("__platformctl_s%d", len(localNames)+1)
+			local := fmt.Sprintf("%ss%d", localPrefix, len(localNames)+1)
 			locals[name] = local
 			localNames = append(localNames, local)
 		}
