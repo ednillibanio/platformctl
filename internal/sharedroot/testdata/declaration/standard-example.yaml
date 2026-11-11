@@ -1,0 +1,23 @@
+# The example of the platform-catalog provision-shared-root-standard.md
+# ("Key declaration", main 561f0ca).
+version: 1
+consumer: provision-example
+automation_key: true
+target:
+  - name: GOVC_URL
+    required: true
+    description: vCenter SDK URL of the target
+    example: https://vcenter.example.test/sdk
+host:
+  - name: HOST_IP
+    required: true
+    description: Static IPv4 address of the service host
+credentials:
+  - name: EXAMPLE_DB_PASS
+    required: true
+    description: Database password, generated at random
+target_credentials:
+  - name: GOVC_PASSWORD
+    identity: terraform-provisioner
+    required: true
+    description: Password of the vCenter account

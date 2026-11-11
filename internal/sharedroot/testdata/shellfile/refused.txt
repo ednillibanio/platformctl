@@ -1,0 +1,22 @@
+declare -x GOVC_URL=hidden
+printf -v GOVC_URL %s hidden
+GOVC_URL=ok; touch /tmp/ran
+GOVC_URL=$(touch /tmp/ran)
+GOVC_URL=`touch /tmp/ran`
+GOVC_URL="${HOME}"
+GOVC_URL=a touch /tmp/ran
+GOVC_URL=a#b
+GOVC_URL='a'b
+GOVC_URL="a"b
+GOVC_URL='unterminated
+GOVC_URL="a\b"
+GOVC_URL="a$b"
+GOVC_URL=a&b
+GOVC_URL=a|b
+GOVC_URL=a>b
+GOVC_URL=(a b)
+GOVC_URL=a\b
+GOVC_URL ="x"
+export
+f() { :; }
+touch /tmp/ran
