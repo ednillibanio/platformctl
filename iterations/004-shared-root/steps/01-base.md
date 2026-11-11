@@ -92,6 +92,17 @@ autorizou commit e PR para `lab`).
   após `Mkdir` seguia o caminho; Medium: `MkdirAll` criava pais com
   `umask`), corrigida; rodada 002 APPROVE sem achados. Registros em
   `.agent-runs/codex-reviews/20261111_19*-004-01-00{1,2}.*` (ignorados).
+- CI do PR #35 (run #61) falhou em macOS e no container-lab: com `umask
+  0777`, `Mkdirat(0700)` criava diretório `0000` que um usuário não root não
+  abre (os testes locais rodavam como root). Correção: `mkdirOpenAt` cria,
+  abre com `O_NOFOLLOW` e aplica `Fchmod 0700`; um `umask` que remove bits
+  do dono vira `ErrUmask`, com o diretório vazio recém-criado removido. Não
+  altera o `umask` do processo nem faz `chmod` por caminho. Testes passam a
+  rodar também como não root (`--userns=keep-id --user 1000:1000`).
+- `codex-review` rodada 003 (sobre uma primeira correção que estreitava o
+  `umask` do processo): CHANGES REQUESTED (Medium: `umask` é global do
+  processo); trocado pela abordagem acima. Limite de 3 rodadas atingido; a
+  correção final não teve rodada extra.
 - Docs de usuário não mudaram nesta etapa: audit `technical-documentation`
   não se aplica.
 
@@ -103,4 +114,6 @@ autorizou commit e PR para `lab`).
 - O ancestral existente do root pode ser alcançado por symlink (fora da
   árvore, como `~/.config` em dotfiles); só o root e o que está abaixo dele
   são recusados.
+- `umask` que remove bits do dono (por exemplo `0777`) é recusado com
+  `ErrUmask`; bits de grupo/outros do `umask` nunca importam.
 - `ExitCode` ainda não está ligado ao `main` (comandos entram na etapa 03).

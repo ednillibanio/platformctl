@@ -23,6 +23,9 @@ var (
 	ErrSymlink = errors.New("refusing to follow a symbolic link in the shared root")
 	// ErrNotDirectory reports a path component that exists but is not a directory.
 	ErrNotDirectory = errors.New("path component is not a directory")
+	// ErrUmask reports a process umask that removes owner permissions, so a
+	// new directory could not be opened by its owner.
+	ErrUmask = errors.New("the process umask removes owner permissions; use a umask that keeps them, such as 0077")
 	// ErrNotSupported reports an operating system without shared-root support.
 	ErrNotSupported = errors.New("shared-root commands are not supported on this operating system")
 )

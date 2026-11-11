@@ -61,7 +61,7 @@ func withUmask(t *testing.T, mask int, fn func()) {
 func TestOpenTreeCreatesRootPrivate(t *testing.T) {
 	base := t.TempDir()
 	root := filepath.Join(base, "a", "b", "assembleiarr")
-	withUmask(t, 0o777, func() {
+	withUmask(t, 0o077, func() {
 		tree, err := OpenTree(root, true)
 		if err != nil {
 			t.Fatalf("OpenTree: %v", err)
@@ -71,6 +71,28 @@ func TestOpenTreeCreatesRootPrivate(t *testing.T) {
 	assertMode(t, filepath.Join(base, "a"), 0o700)
 	assertMode(t, filepath.Join(base, "a", "b"), 0o700)
 	assertMode(t, root, 0o700)
+}
+
+func TestOwnerStrippingUmaskFailsCleanly(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("root bypasses directory permissions; the umask cannot lock it out")
+	}
+	tree, root := openTestTree(t)
+	newRoot := filepath.Join(t.TempDir(), "new")
+	withUmask(t, 0o777, func() {
+		if _, err := tree.EnsureDir("lab"); !errors.Is(err, ErrUmask) {
+			t.Fatalf("EnsureDir: want ErrUmask, got %v", err)
+		}
+		if err := tree.PublishDir(nil, "automation", pairFiles("x")); !errors.Is(err, ErrUmask) {
+			t.Fatalf("PublishDir: want ErrUmask, got %v", err)
+		}
+		if _, err := OpenTree(newRoot, true); !errors.Is(err, ErrUmask) {
+			t.Fatalf("OpenTree: want ErrUmask, got %v", err)
+		}
+	})
+	if entries, _ := os.ReadDir(root); len(entries) != 0 {
+		t.Fatalf("entries left behind: %v", entries)
+	}
 }
 
 func TestOpenTreeLeavesExistingRootUnchanged(t *testing.T) {
@@ -114,7 +136,7 @@ func TestEnsureDirCreatesPrivateDirsIndependentOfUmask(t *testing.T) {
 	tree, root := openTestTree(t)
 	var created []string
 	var err error
-	withUmask(t, 0o777, func() {
+	withUmask(t, 0o077, func() {
 		created, err = tree.EnsureDir("lab", "targets", "vsphere-lab", "hosts")
 	})
 	if err != nil {
@@ -196,7 +218,7 @@ func TestPublishFileModesIndependentOfUmask(t *testing.T) {
 	if _, err := tree.EnsureDir("lab"); err != nil {
 		t.Fatal(err)
 	}
-	withUmask(t, 0o777, func() {
+	withUmask(t, 0o077, func() {
 		if err := tree.PublishFile([]string{"lab"}, "vars.sh", []byte("# KEY=\n"), 0o644); err != nil {
 			t.Fatalf("PublishFile 0644: %v", err)
 		}
@@ -322,7 +344,7 @@ func TestPublishDirPublishesWholeUnit(t *testing.T) {
 	if _, err := tree.EnsureDir("lab", "credentials"); err != nil {
 		t.Fatal(err)
 	}
-	withUmask(t, 0o777, func() {
+	withUmask(t, 0o077, func() {
 		if err := tree.PublishDir([]string{"lab", "credentials"}, "automation", pairFiles("x")); err != nil {
 			t.Fatalf("PublishDir: %v", err)
 		}

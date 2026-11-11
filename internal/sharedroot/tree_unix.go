@@ -168,10 +168,12 @@ func (t *Tree) PublishDir(dir []string, name string, files []File) error {
 	if err != nil {
 		return err
 	}
-	if err := unix.Mkdirat(dirfd, tmp, 0o700); err != nil {
+	tmpfd, err := mkdirOpenAt(dirfd, tmp)
+	if err != nil {
 		return fmt.Errorf("create temporary directory for %s: %w", t.display(dir, name), err)
 	}
-	written, err := populateDir(dirfd, tmp, files)
+	written, err := populateDir(tmpfd, files)
+	unix.Close(tmpfd)
 	if err == nil {
 		err = renameNoReplace(dirfd, tmp, name)
 		if err == nil {
@@ -244,24 +246,19 @@ func openDirAt(parent int, name string, create bool) (int, bool, error) {
 	if !errors.Is(err, unix.ENOENT) || !create {
 		return -1, false, classifyAt(parent, name, err)
 	}
-	made := true
-	if err := unix.Mkdirat(parent, name, 0o700); err != nil {
-		if !errors.Is(err, unix.EEXIST) {
-			return -1, false, err
-		}
-		made = false // created concurrently by another run
+	fd, err = mkdirOpenAt(parent, name)
+	if err == nil {
+		return fd, true, nil
 	}
+	if !errors.Is(err, unix.EEXIST) {
+		return -1, false, err
+	}
+	// Created concurrently by another run: open it, never change it.
 	fd, err = unix.Openat(parent, name, dirOpenFlags, 0)
 	if err != nil {
 		return -1, false, classifyAt(parent, name, err)
 	}
-	if made {
-		if err := unix.Fchmod(fd, 0o700); err != nil {
-			unix.Close(fd)
-			return -1, false, err
-		}
-	}
-	return fd, made, nil
+	return fd, false, nil
 }
 
 // classifyAt turns an open failure into ErrSymlink or ErrNotDirectory when the
@@ -325,15 +322,7 @@ func writeNewFile(dirfd int, name string, content []byte, mode os.FileMode) erro
 	return file.Close()
 }
 
-func populateDir(parent int, tmp string, files []File) ([]string, error) {
-	fd, err := unix.Openat(parent, tmp, dirOpenFlags, 0)
-	if err != nil {
-		return nil, err
-	}
-	defer unix.Close(fd)
-	if err := unix.Fchmod(fd, 0o700); err != nil {
-		return nil, err
-	}
+func populateDir(fd int, files []File) ([]string, error) {
 	var written []string
 	for _, file := range files {
 		if err := writeNewFile(fd, file.Name, file.Content, file.Mode); err != nil {
@@ -386,4 +375,29 @@ func checkComponent(name string) error {
 		return Usagef("invalid path component %q", name)
 	}
 	return nil
+}
+
+// mkdirOpenAt creates name in parent with mode 0700, opens it with
+// O_NOFOLLOW and sets mode 0700 on the descriptor, so the group and other bits
+// of the umask never matter. A umask that removes owner bits (for example
+// 0777) leaves a directory its owner cannot open; then the new, empty
+// directory is removed and ErrUmask is returned. The process umask is never
+// changed and no mode is set by path. An existing name yields EEXIST.
+func mkdirOpenAt(parent int, name string) (int, error) {
+	if err := unix.Mkdirat(parent, name, 0o700); err != nil {
+		return -1, err
+	}
+	fd, err := unix.Openat(parent, name, dirOpenFlags, 0)
+	if err != nil {
+		if errors.Is(err, unix.EACCES) {
+			_ = unix.Unlinkat(parent, name, unix.AT_REMOVEDIR)
+			return -1, ErrUmask
+		}
+		return -1, classifyAt(parent, name, err)
+	}
+	if err := unix.Fchmod(fd, 0o700); err != nil {
+		unix.Close(fd)
+		return -1, err
+	}
+	return fd, nil
 }
