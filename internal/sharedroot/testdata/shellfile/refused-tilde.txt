@@ -1,0 +1,4 @@
+GOVC_URL=~/path
+GOVC_URL=~operator/path
+GOVC_URL=/a:~/b
+GOVC_URL=a~b
