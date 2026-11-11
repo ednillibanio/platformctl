@@ -6,3 +6,4 @@
 /container/.env
 *.exe
 *.test
+/.agent-runs/
