@@ -2,8 +2,9 @@
 
 This index routes operators, integrators, and maintainers to the authoritative
 `platformctl` documentation. The repository is in the `v1alpha1` foundation
-phase and has no published release. `main` is the principal/default branch;
-`lab` is the integration branch used to validate changes before promotion.
+phase; releases are published from `vX.Y.Z` tags of `main`. `main` is the
+principal/default branch; `lab` is the integration branch used to validate
+changes before promotion.
 
 ## Choose a starting point
 
@@ -11,7 +12,10 @@ phase and has no published release. `main` is the principal/default branch;
 | --- | --- |
 | Evaluate what `platformctl` does | [README](../README.md) and [Architecture](architecture.md) |
 | Build and install the CLI | [Installation](installation.md) |
-| Create an environment from scratch | [Usage guide](usage.md) |
+| Understand the `provision-*` shared root | [Shared root concepts](shared-root-concepts.md) |
+| Prepare and check the shared root on a controller | [Usage guide](usage.md#shared-root-of-the-provision--repositories) |
+| Write a repository's `shared-root.yaml` | [Writing a key declaration](shared-root-declaration.md) |
+| Create an environment from scratch (paused YAML model) | [Usage guide](usage.md#yaml-model-paused) |
 | Look up a command or flag | [CLI reference](cli-reference.md) |
 | Look up YAML fields, validation, or merge precedence | [Configuration reference](configuration.md) |
 | Integrate rendered output with another repository | [Ecosystem and integrations](ecosystem.md) |
@@ -25,11 +29,14 @@ phase and has no published release. `main` is the principal/default branch;
 
 ### Learn and perform tasks
 
-- [Installation](installation.md) builds the current source on Linux, macOS,
-  and Windows and explains where the binary and configuration live.
+- [Installation](installation.md) installs a release on Linux and macOS, or
+  builds the source on Linux, macOS, and Windows, and explains where the
+  binary and configuration live.
 - [Usage guide](usage.md) prepares and checks the `provision-*` shared root
   on a controller, and walks through the paused YAML model: initialization,
   manual YAML authoring, validation, and rendering.
+- [Writing a key declaration](shared-root-declaration.md) guides a
+  `provision-*` maintainer through `shared-root.yaml` and how to check it.
 - [Lab environments](lab-environments.md) compares the disposable container
   and Vagrant validation environments.
 - [Vagrant controller integration](vagrant-controller-integration.md) mounts an
@@ -46,6 +53,9 @@ phase and has no published release. `main` is the principal/default branch;
 
 ### Understand design and boundaries
 
+- [Shared root concepts](shared-root-concepts.md) explains why the shared
+  root exists, its layout, who writes and reads each file, identities, and
+  several controllers.
 - [Architecture](architecture.md) explains the internal pipeline and component
   responsibilities.
 - [Ecosystem and integrations](ecosystem.md) distinguishes current repository

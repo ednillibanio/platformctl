@@ -130,7 +130,10 @@ Start with the [documentation index](docs/index.md), or go directly to:
 | Need | Document |
 | --- | --- |
 | Install a release or build from source | [Installation](docs/installation.md) |
-| Create a complete environment | [Usage guide](docs/usage.md) |
+| Understand the `provision-*` shared root | [Shared root concepts](docs/shared-root-concepts.md) |
+| Prepare and check the shared root on a controller | [Usage guide](docs/usage.md#shared-root-of-the-provision--repositories) |
+| Write a repository's `shared-root.yaml` | [Writing a key declaration](docs/shared-root-declaration.md) |
+| Create a complete environment (paused YAML model) | [Usage guide](docs/usage.md#yaml-model-paused) |
 | Look up commands and flags | [CLI reference](docs/cli-reference.md) |
 | Look up YAML fields and merge behavior | [Configuration reference](docs/configuration.md) |
 | Understand internals and boundaries | [Architecture](docs/architecture.md) |

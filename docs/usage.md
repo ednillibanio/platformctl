@@ -18,6 +18,11 @@ names and identities are defined by the platform-catalog
 [provision shared root standard](https://github.com/ednillibanio/platform-catalog/blob/main/docs/standards/provision-shared-root-standard.md). The shared-root commands run on
 Linux and macOS.
 
+New to the shared root? Read [Shared root concepts](shared-root-concepts.md)
+first: what the tree is for, its layout, who writes and reads each file, and
+how several controllers stay aligned. Repository maintainers who write a
+`shared-root.yaml` follow [Writing a key declaration](shared-root-declaration.md).
+
 ### 1. Collect the declarations
 
 Each `provision-*` repository declares, in a `shared-root.yaml` at its root,
@@ -52,6 +57,12 @@ ssh first-controller cat .config/assembleiarr/lab/credentials/automation/ssh_ed2
 Running the command again is safe: existing files are reported as `exists`
 and never changed. If an existing file lacks a declared key, the command
 prints the placeholder lines to add.
+
+With one target and one consumer the result is the tree drawn in
+[Shared root concepts: The tree](shared-root-concepts.md#the-tree):
+`targets/<t>/vars.sh`, `targets/<t>/hosts/<consumer>.sh`, an empty
+`credentials/<consumer>/` and, with `--automation-key`,
+`credentials/automation/ssh_ed25519{,.pub}`.
 
 ### 3. Set the shared values
 
@@ -91,9 +102,10 @@ read -rs GOVC_PASSWORD && printf '%s' "$GOVC_PASSWORD" | \
 
 Target secrets live under `credentials/target-<t>/<identity>/`, and only an
 active identity of the standard is accepted. Today that is
-`vcenter-access-admin` (`provision-vsphere-platform`); the identity of each
-other `provision-*` repository, named after it, is reserved until the catalog
-activates it (ADR-0007). A repository that still reads files directly under
+`vcenter-access-admin` (`provision-vsphere-platform`). Another repository's
+identity, named after it by convention, is usable only once the catalog's
+Identities table lists it as active (ADR-0007); check the table for its
+current status. A repository that still reads files directly under
 `credentials/target-<t>/` keeps its legacy files until its adaptation issue
 is closed; `doctor` reports them.
 
@@ -105,10 +117,69 @@ platformctl doctor --env lab \
 ```
 
 It exits `0` when there is no problem (warnings allowed), `1` with problems,
-and prints each one with its file and line. Fix problems by hand; no command
-rewrites a file. To compare two controllers, run
-`platformctl doctor --env lab --format json` on both and diff the
-non-secret values, credential names and key fingerprints.
+and prints each one with its file and, where there is one, its line. Fix
+problems by hand; no command rewrites a file.
+
+Right after step 2, before any value is set (`<root>` stands for the root
+path):
+
+```text
+problem  <root>/lab/credentials/provision-example/EXAMPLE_DB_PASS: EXAMPLE_DB_PASS: required credential of provision-example missing; run platformctl credential --consumer provision-example
+problem  <root>/lab/targets/vsphere-lab/hosts/provision-example.sh:10: HOST_IP: required key is still a placeholder
+problem  <root>/lab/targets/vsphere-lab/vars.sh:12: GOVC_URL: required key is still a placeholder
+problem  <root>/lab/targets/vsphere-lab/vars.sh:15: GOVC_DATACENTER: required key is still a placeholder
+automation key SHA256:WS5zIGaIN7yGD6hFmEWP+UX93khflLW/y9ii/3TFjSE
+<root>/lab: 4 problem(s), 0 warning(s)
+doctor found 4 problem(s) in <root>/lab
+```
+
+After steps 3 and 4 (exit `0`):
+
+```text
+automation key SHA256:WS5zIGaIN7yGD6hFmEWP+UX93khflLW/y9ii/3TFjSE
+<root>/lab: 0 problem(s), 0 warning(s)
+```
+
+A line that is not a literal assignment, here `TARGET_FOLDER=$(id)`:
+
+```text
+problem  <root>/lab/targets/vsphere-lab/vars.sh:19: TARGET_FOLDER: only KEY=value lines with a literal value are allowed (no declare, printf -v, functions, commands, $ or ` expansion, unquoted ~)
+```
+
+The value is never printed, only the file, line and key. More messages and
+their fixes are in [Troubleshooting: Shared root](troubleshooting.md#shared-root).
+
+To compare two controllers, run `platformctl doctor --env lab --format json`
+on both and diff the output. It holds the non-secret values, the credential
+names (never their values) and the key fingerprint:
+
+```json
+{
+  "env": "lab",
+  "ok": true,
+  "problems": [],
+  "warnings": [],
+  "targets": {
+    "vsphere-lab": {
+      "vars": {
+        "GOVC_DATACENTER": "dc-lab",
+        "GOVC_URL": "https://vcenter.lab.example.test/sdk"
+      },
+      "hosts": { "provision-example": { "HOST_IP": "192.0.2.10" } },
+      "credentials": {}
+    }
+  },
+  "credentials": { "provision-example": ["EXAMPLE_DB_PASS"] },
+  "automation_key": {
+    "private_key": true,
+    "public_key": true,
+    "fingerprint": "SHA256:WS5zIGaIN7yGD6hFmEWP+UX93khflLW/y9ii/3TFjSE"
+  }
+}
+```
+
+The real output also has `root`, which differs between controllers when
+their home directories differ; leave it out of the comparison.
 
 ### Try it without touching the real tree
 
