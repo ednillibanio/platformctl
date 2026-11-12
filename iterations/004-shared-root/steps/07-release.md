@@ -1,6 +1,6 @@
 # Etapa: Release
 
-Status: `doing`
+Status: `done`
 
 ## Objetivo
 
@@ -33,7 +33,9 @@ actionlint .github/workflows/*.yml
 
 ## Resultado
 
-Implementado (2026-11-12), aguardando o CI do PR e o OK do operador.
+Implementado e aprovado pelo operador (2026-11-12). O run de `release` do PR
+#43 foi o teste sem publicar: `build` ok, `publish` pulado, artefato
+`platformctl-dev-d3b8710c71f9`.
 
 - `platformctl --version` (`platformctl version <v>`; `dev` em build de
   fonte): `Version` do root do cobra em `internal/cli/cli.go`, injetado com
