@@ -1,0 +1,13 @@
+version: 1
+consumer: provision-nexus3
+target:
+  - name: GOVC_URL
+    required: true
+    description: vCenter SDK URL
+  - name: TARGET_DATASTORE
+    required: false
+    description: Datastore of the service hosts
+host:
+  - name: HOST_IP
+    required: true
+    description: Static IPv4 address of the Nexus host

@@ -25,7 +25,8 @@ func NewWithIO(stdout, stderr io.Writer) *cobra.Command {
 	}
 	root.SetOut(stdout)
 	root.SetErr(stderr)
-	root.AddCommand(initCommand(stdout), environmentCommand(stdout), validateCommand(stdout), renderCommand(stdout), exportCommand(stdout))
+	root.AddCommand(initCommand(stdout), environmentCommand(stdout), validateCommand(stdout), renderCommand(stdout), exportCommand(stdout),
+		bootstrapConfigCommand(stdout, stderr))
 	return root
 }
 

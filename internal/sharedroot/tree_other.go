@@ -19,3 +19,7 @@ func (t *Tree) EnsureDir(...string) ([]string, error) { return nil, ErrNotSuppor
 func (t *Tree) PublishFile([]string, string, []byte, os.FileMode) error { return ErrNotSupported }
 
 func (t *Tree) PublishDir([]string, string, []File) error { return ErrNotSupported }
+
+func (t *Tree) Entry([]string, string) (bool, bool, error) { return false, false, ErrNotSupported }
+
+func (t *Tree) ReadFile([]string, string) ([]byte, error) { return nil, ErrNotSupported }
