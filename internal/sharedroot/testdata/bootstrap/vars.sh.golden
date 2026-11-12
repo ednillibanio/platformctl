@@ -1,0 +1,18 @@
+# Shared values of target vsphere-lab in environment lab.
+# Created by platformctl bootstrap-config. Keys: GOVC_*, TARGET_* and
+# DISPOSABLE_* only.
+# Only comments, blank lines and KEY=value lines with a literal value are
+# allowed: unquoted without spaces, shell characters or ~, 'single quoted',
+# or "double quoted" without $ ` \ or ". To set a key, write its value after
+# the = and remove the leading "# ". See the platform-catalog
+# provision-shared-root-standard.md.
+
+# GOVC_URL (required): vCenter SDK URL of the target
+# Example: https://vcenter.example.test/sdk
+# GOVC_URL=
+
+# TARGET_FOLDER (required): VM folder of the service hosts
+# TARGET_FOLDER=
+
+# TARGET_DATASTORE (optional): Datastore of the service hosts
+# TARGET_DATASTORE=

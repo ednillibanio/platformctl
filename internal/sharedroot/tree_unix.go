@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -231,7 +232,7 @@ func (t *Tree) wrapPathError(rel string, err error) error {
 	case errors.Is(err, ErrSymlink), errors.Is(err, ErrNotDirectory):
 		return fmt.Errorf("%w: %s", err, path)
 	case errors.Is(err, unix.ENOENT):
-		return fmt.Errorf("directory does not exist: %s", path)
+		return fmt.Errorf("%w: directory %s", os.ErrNotExist, path)
 	}
 	return fmt.Errorf("open %s: %w", path, err)
 }
@@ -400,4 +401,78 @@ func mkdirOpenAt(parent int, name string) (int, error) {
 		return -1, err
 	}
 	return fd, nil
+}
+
+// Entry reports whether name exists in dir (components relative to the root)
+// and whether it is a directory, without following a symbolic link. A missing
+// dir counts as a missing entry.
+func (t *Tree) Entry(dir []string, name string) (exists, isDir bool, err error) {
+	if err := checkComponent(name); err != nil {
+		return false, false, err
+	}
+	dirfd, _, err := t.walk(dir, false)
+	if errors.Is(err, os.ErrNotExist) {
+		return false, false, nil
+	}
+	if err != nil {
+		return false, false, err
+	}
+	defer unix.Close(dirfd)
+	var st unix.Stat_t
+	if err := unix.Fstatat(dirfd, name, &st, unix.AT_SYMLINK_NOFOLLOW); err != nil {
+		if errors.Is(err, unix.ENOENT) {
+			return false, false, nil
+		}
+		return false, false, fmt.Errorf("inspect %s: %w", t.display(dir, name), err)
+	}
+	switch st.Mode & unix.S_IFMT {
+	case unix.S_IFLNK:
+		return true, false, fmt.Errorf("%w: %s", ErrSymlink, t.display(dir, name))
+	case unix.S_IFDIR:
+		return true, true, nil
+	}
+	return true, false, nil
+}
+
+// maxReadSize bounds a shared file read; the files hold a few keys.
+const maxReadSize = 1 << 20
+
+// ReadFile reads the regular file name in dir without following a symbolic
+// link. A missing file yields an error matching os.ErrNotExist.
+func (t *Tree) ReadFile(dir []string, name string) ([]byte, error) {
+	if err := checkComponent(name); err != nil {
+		return nil, err
+	}
+	dirfd, _, err := t.walk(dir, false)
+	if err != nil {
+		return nil, err
+	}
+	defer unix.Close(dirfd)
+	fd, err := unix.Openat(dirfd, name, unix.O_RDONLY|unix.O_NOFOLLOW|unix.O_NONBLOCK|unix.O_CLOEXEC, 0)
+	if err != nil {
+		switch {
+		case errors.Is(err, unix.ENOENT):
+			return nil, fmt.Errorf("%w: %s", os.ErrNotExist, t.display(dir, name))
+		case errors.Is(err, unix.ELOOP):
+			return nil, fmt.Errorf("%w: %s", ErrSymlink, t.display(dir, name))
+		}
+		return nil, fmt.Errorf("open %s: %w", t.display(dir, name), err)
+	}
+	file := os.NewFile(uintptr(fd), name)
+	defer file.Close()
+	info, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+	if !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("not a regular file: %s", t.display(dir, name))
+	}
+	data, err := io.ReadAll(io.LimitReader(file, maxReadSize+1))
+	if err != nil {
+		return nil, fmt.Errorf("read %s: %w", t.display(dir, name), err)
+	}
+	if len(data) > maxReadSize {
+		return nil, fmt.Errorf("file larger than %d bytes: %s", maxReadSize, t.display(dir, name))
+	}
+	return data, nil
 }

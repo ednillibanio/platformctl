@@ -1,0 +1,13 @@
+created      <root>/
+created      <root>/lab/
+created      <root>/lab/targets/
+created      <root>/lab/credentials/
+created      <root>/lab/targets/vsphere-lab/
+created      <root>/lab/targets/vsphere-lab/hosts/
+created      <root>/lab/credentials/target-vsphere-lab/
+created      <root>/lab/credentials/target-vsphere-lab/terraform-provisioner/
+created      <root>/lab/credentials/provision-semaphoreui/
+created      <root>/lab/credentials/provision-nexus3/
+created      <root>/lab/targets/vsphere-lab/vars.sh
+created      <root>/lab/targets/vsphere-lab/hosts/provision-semaphoreui.sh
+created      <root>/lab/targets/vsphere-lab/hosts/provision-nexus3.sh

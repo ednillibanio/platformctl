@@ -1,0 +1,10 @@
+# Values of provision-semaphoreui on target vsphere-lab in environment lab.
+# Created by platformctl bootstrap-config. Keys: HOST_* only.
+# Only comments, blank lines and KEY=value lines with a literal value are
+# allowed: unquoted without spaces, shell characters or ~, 'single quoted',
+# or "double quoted" without $ ` \ or ". To set a key, write its value after
+# the = and remove the leading "# ". See the platform-catalog
+# provision-shared-root-standard.md.
+
+# HOST_IP (required): Static IPv4 address of the SemaphoreUI host
+# HOST_IP=
