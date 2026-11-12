@@ -2,9 +2,7 @@ package sharedroot
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 )
@@ -38,36 +36,6 @@ func TestShellFileFixtures(t *testing.T) {
 				if strings.Contains(line, secret) && strings.Contains(err.Error(), secret) {
 					t.Errorf("%s: error prints part of the line (%q): %v", name, secret, err)
 				}
-			}
-		}
-	}
-}
-
-// TestShellFileAgreesWithLoader runs the provision-semaphoreui loader line
-// check (testdata/shellfile/loader-check.sh, a verbatim copy) over the same
-// fixtures. The loader does not enforce the `~` rule yet (its adaptation
-// issue), so refused-tilde.txt passes the loader and fails here.
-func TestShellFileAgreesWithLoader(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("the loader runs on Linux and macOS controllers only")
-	}
-	bash, err := exec.LookPath("bash")
-	if err != nil {
-		t.Skip("bash not available")
-	}
-	for name, want := range map[string]string{"accepted.txt": "ok", "refused.txt": "refused", "refused-tilde.txt": "ok"} {
-		out, err := exec.Command(bash, filepath.Join("testdata", "shellfile", "loader-check.sh"), filepath.Join("testdata", "shellfile", name)).Output()
-		if err != nil {
-			t.Fatalf("%s: run loader pattern: %v", name, err)
-		}
-		lines := fixtureLines(t, name)
-		results := strings.Fields(string(out))
-		if len(results) != len(lines) {
-			t.Fatalf("%s: %d results for %d lines", name, len(results), len(lines))
-		}
-		for i, got := range results {
-			if got != want {
-				t.Errorf("%s: loader says %s, want %s: %q", name, got, want, lines[i])
 			}
 		}
 	}

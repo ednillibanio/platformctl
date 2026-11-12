@@ -120,6 +120,9 @@ Documentação e e2e implementados e aprovados pelo operador (2026-11-12).
   (`internal/sharedroot/shellfile.go` cita o loader do
   `provision-semaphoreui` em vez da seção "File format" do catálogo;
   `testdata/shellfile/loader-check.sh`; fixtures e testes com nome
-  `semaphoreui`): PR de correção próprio depois desta etapa.
+  `semaphoreui`): PR de correção próprio depois desta etapa (branch
+  `fix/sharedroot-no-consumer-coupling`: comentário cita o catálogo,
+  `loader-check.sh` e seu teste removidos, fixtures `provision-example` e
+  `provision-sample`; testes de identidade `reserved` seguem o catálogo).
 - Comentar em al-rr/provision-semaphoreui#86 que o cruzamento do loader com
   uma árvore do platformctl é teste do próprio repositório.
