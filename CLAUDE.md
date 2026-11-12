@@ -29,6 +29,13 @@ neutral declaration (see `docs/development.md`):
 ./scripts/e2e-shared-root.sh
 ```
 
+Release files (four binaries built without cgo and `SHA256SUMS`; the release workflow
+runs the same script, see `docs/development.md`):
+
+```bash
+./scripts/release-build.sh <vX.Y.Z|dev-<commit>> <out-dir>
+```
+
 Static lab contract checks (Bash only, no Vagrant/Docker needed):
 
 ```bash

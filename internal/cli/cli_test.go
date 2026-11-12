@@ -181,3 +181,18 @@ func TestExportCommand(t *testing.T) {
 		}
 	}
 }
+
+func TestVersion(t *testing.T) {
+	saved := Version
+	t.Cleanup(func() { Version = saved })
+	Version = "v9.8.7"
+	var stdout bytes.Buffer
+	command := NewWithIO(&stdout, &bytes.Buffer{})
+	command.SetArgs([]string{"--version"})
+	if err := command.Execute(); err != nil {
+		t.Fatal(err)
+	}
+	if got, want := stdout.String(), "platformctl version v9.8.7\n"; got != want {
+		t.Fatalf("--version printed %q, want %q", got, want)
+	}
+}

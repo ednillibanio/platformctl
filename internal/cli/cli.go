@@ -12,6 +12,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Version is printed by `platformctl --version`. Release builds set it with
+// -ldflags "-X github.com/ednillibanio/platformctl/internal/cli.Version=<tag>".
+var Version = "dev"
+
 func New() *cobra.Command {
 	return NewWithIO(os.Stdout, os.Stderr)
 }
@@ -20,6 +24,7 @@ func NewWithIO(stdout, stderr io.Writer) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "platformctl",
 		Short:         "Manage platform environment configuration",
+		Version:       Version,
 		SilenceErrors: true,
 		SilenceUsage:  true,
 	}

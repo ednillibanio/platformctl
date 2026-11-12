@@ -78,7 +78,7 @@ Fora de escopo:
 | 04 | `done` | `steps/04-credential.md` |
 | 05 | `done` | `steps/05-doctor.md` |
 | 06 | `done` | `steps/06-docs-e2e.md` |
-| 07 | `todo` | `steps/07-release.md` |
+| 07 | `doing` | `steps/07-release.md` |
 
 ## Critérios de Fechamento
 
