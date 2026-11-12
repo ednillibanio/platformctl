@@ -145,3 +145,57 @@ Exit status: 0 success, 1 problem, 2 usage error.`,
 	flags.BoolVar(&opts.DryRun, "dry-run", false, "print every action and change nothing")
 	return command
 }
+
+func doctorCommand(stdout io.Writer) *cobra.Command {
+	var opts sharedroot.DoctorOptions
+	var configDir string
+	command := &cobra.Command{
+		Use:   "doctor --env <env>",
+		Short: "Check the provision-* shared root of an environment (read-only)",
+		Long: `Check the provision-* shared root of an environment. Read-only.
+
+Checks the modes, owner and type of every path under <root>/<env>/ (no
+symbolic links), the format of every shared file, temporary entries left by
+an interrupted run, empty credential files, files directly under
+credentials/target-<t>/ and identity directories that are not active, the
+automation key pair, and, with declarations, every required key, credential
+and key pair, and a declared credential name or value found in a file
+readable by others. Undeclared keys and files are warnings. --target limits
+the declared checks to those targets (default every target found);
+--consumer adds consumers whose files must exist. Declarations default to
+./shared-root.yaml when it exists.
+
+--format json prints the findings, the non-secret keys and values, the names
+of the credential files present and the public key fingerprint; never a
+secret value or a hash of one.
+
+Exit status: 0 no problem (warnings allowed), 1 problems found, 2 usage error.`,
+		Args: usageArgs,
+		RunE: func(_ *cobra.Command, _ []string) error {
+			if opts.Env == "" {
+				return sharedroot.Usagef("--env is required")
+			}
+			root, err := sharedroot.ResolveRoot(configDir)
+			if err != nil {
+				return err
+			}
+			opts.Root = root
+			if len(opts.Declarations) == 0 {
+				if info, err := os.Stat(defaultDeclaration); err == nil && info.Mode().IsRegular() {
+					opts.Declarations = []string{defaultDeclaration}
+				}
+			}
+			opts.Out = stdout
+			return sharedroot.Doctor(opts)
+		},
+	}
+	command.SetFlagErrorFunc(usageFlagError)
+	flags := command.Flags()
+	flags.StringVar(&opts.Env, "env", "", "environment, one of the platform-catalog environments (required)")
+	flags.StringArrayVar(&opts.Targets, "target", nil, "target to check (repeatable; default every target found)")
+	flags.StringArrayVar(&opts.Consumers, "consumer", nil, "consumer whose files must exist (repeatable)")
+	flags.StringArrayVar(&opts.Declarations, "declaration", nil, "path of a shared-root.yaml (repeatable; default ./shared-root.yaml when it exists)")
+	flags.StringVar(&opts.Format, "format", "text", "output format: text or json")
+	flags.StringVar(&configDir, "config-dir", "", "shared root (default ASSEMBLEIARR_CONFIG_DIR, else ~/.config/assembleiarr)")
+	return command
+}

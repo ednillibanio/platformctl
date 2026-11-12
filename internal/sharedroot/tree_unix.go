@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"golang.org/x/sys/unix"
@@ -476,3 +477,90 @@ func (t *Tree) ReadFile(dir []string, name string) ([]byte, error) {
 	}
 	return data, nil
 }
+
+// Lstat describes name in dir without following a symbolic link. A missing
+// entry or directory yields an error matching os.ErrNotExist. With an empty
+// name it describes the directory dir itself (the root for an empty dir).
+func (t *Tree) Lstat(dir []string, name string) (EntryInfo, error) {
+	if name == "" {
+		fd, _, err := t.walk(dir, false)
+		if err != nil {
+			return EntryInfo{}, err
+		}
+		defer unix.Close(fd)
+		var st unix.Stat_t
+		if err := unix.Fstat(fd, &st); err != nil {
+			return EntryInfo{}, err
+		}
+		base := ""
+		if len(dir) > 0 {
+			base = dir[len(dir)-1]
+		}
+		return entryInfo(base, &st), nil
+	}
+	if err := checkComponent(name); err != nil {
+		return EntryInfo{}, err
+	}
+	dirfd, _, err := t.walk(dir, false)
+	if err != nil {
+		return EntryInfo{}, err
+	}
+	defer unix.Close(dirfd)
+	var st unix.Stat_t
+	if err := unix.Fstatat(dirfd, name, &st, unix.AT_SYMLINK_NOFOLLOW); err != nil {
+		if errors.Is(err, unix.ENOENT) {
+			return EntryInfo{}, fmt.Errorf("%w: %s", os.ErrNotExist, t.display(dir, name))
+		}
+		return EntryInfo{}, fmt.Errorf("inspect %s: %w", t.display(dir, name), err)
+	}
+	return entryInfo(name, &st), nil
+}
+
+// List describes every entry of dir, sorted by name, without following a
+// symbolic link.
+func (t *Tree) List(dir []string) ([]EntryInfo, error) {
+	dirfd, _, err := t.walk(dir, false)
+	if err != nil {
+		return nil, err
+	}
+	// The *os.File owns dirfd and closes it.
+	file := os.NewFile(uintptr(dirfd), filepath.Join(append([]string{t.root}, dir...)...))
+	defer file.Close()
+	names, err := file.Readdirnames(-1)
+	if err != nil {
+		return nil, fmt.Errorf("list %s: %w", file.Name(), err)
+	}
+	sort.Strings(names)
+	out := make([]EntryInfo, 0, len(names))
+	for _, name := range names {
+		var st unix.Stat_t
+		if err := unix.Fstatat(dirfd, name, &st, unix.AT_SYMLINK_NOFOLLOW); err != nil {
+			if errors.Is(err, unix.ENOENT) {
+				continue // removed meanwhile
+			}
+			return nil, fmt.Errorf("inspect %s: %w", t.display(dir, name), err)
+		}
+		out = append(out, entryInfo(name, &st))
+	}
+	return out, nil
+}
+
+func entryInfo(name string, st *unix.Stat_t) EntryInfo {
+	info := EntryInfo{Name: name, Perm: os.FileMode(st.Mode) & os.ModePerm, UID: int(st.Uid), Size: int64(st.Size)}
+	switch st.Mode & unix.S_IFMT {
+	case unix.S_IFDIR:
+		info.Type = TypeDir
+	case unix.S_IFREG:
+		info.Type = TypeFile
+	case unix.S_IFLNK:
+		info.Type = TypeSymlink
+	default:
+		info.Type = TypeOther
+	}
+	if st.Mode&(unix.S_ISUID|unix.S_ISGID|unix.S_ISVTX) != 0 {
+		info.Special = true
+	}
+	return info
+}
+
+func supported() bool { return true }

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -148,6 +149,57 @@ func TestCredentialNotSupported(t *testing.T) {
 	}
 	_, _, err := runCLI(t, "", "credential", "--env", "lab", "--consumer", "provision-example",
 		"--config-dir", filepath.Join(t.TempDir(), "r"), "A")
+	if err == nil || !strings.Contains(err.Error(), "not supported") {
+		t.Fatalf("want not supported, got %v", err)
+	}
+}
+
+func TestDoctorUsageErrors(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "assembleiarr")
+	for _, args := range [][]string{
+		{"doctor"},
+		{"doctor", "--env", "lab", "--config-dir", root, "--format", "yaml"},
+		{"doctor", "--env", "lab", "--config-dir", root, "extra"},
+		{"doctor", "--env", "lab", "--config-dir", root, "--dry-run"},
+	} {
+		if _, _, err := runCLI(t, "", args...); sharedroot.ExitCode(err) != sharedroot.ExitUsage {
+			t.Errorf("%v: want usage error, got %v", args, err)
+		}
+	}
+}
+
+func TestDoctorCommand(t *testing.T) {
+	if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
+		t.Skip("shared-root commands are not supported on this operating system")
+	}
+	t.Chdir(t.TempDir())
+	root := filepath.Join(t.TempDir(), "assembleiarr")
+	t.Setenv(sharedroot.EnvVar, root)
+	if _, _, err := runCLI(t, "", "bootstrap-config", "--env", "lab", "--target", "vsphere-lab"); err != nil {
+		t.Fatal(err)
+	}
+	out, _, err := runCLI(t, "", "doctor", "--env", "lab", "--format", "json")
+	if err != nil {
+		t.Fatalf("doctor on a fresh skeleton: %v\n%s", err, out)
+	}
+	var report sharedroot.Report
+	if err := json.Unmarshal([]byte(out), &report); err != nil || !report.OK {
+		t.Fatalf("JSON: %v\n%s", err, out)
+	}
+	if err := os.Chmod(filepath.Join(root, "lab", "credentials"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	out, _, err = runCLI(t, "", "doctor", "--env", "lab")
+	if sharedroot.ExitCode(err) != sharedroot.ExitProblem || !strings.Contains(out, "mode 0755, want 0700") {
+		t.Fatalf("want exit 1 with the mode problem: %v\n%s", err, out)
+	}
+}
+
+func TestDoctorNotSupported(t *testing.T) {
+	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+		t.Skip("supported here")
+	}
+	_, _, err := runCLI(t, "", "doctor", "--env", "lab", "--config-dir", filepath.Join(t.TempDir(), "r"))
 	if err == nil || !strings.Contains(err.Error(), "not supported") {
 		t.Fatalf("want not supported, got %v", err)
 	}
