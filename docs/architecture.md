@@ -129,7 +129,7 @@ standard output and does not create an output file itself.
 
 | Component | Responsibility | Must not own |
 | --- | --- | --- |
-| `cmd/platformctl` | Process startup, error printing, exit `1` on error. | Command behavior or domain logic. |
+| `cmd/platformctl` | Process startup, error printing, exit `1` on error (`2` on a shared-root usage error). | Command behavior or domain logic. |
 | `internal/cli` | Cobra commands, flags, and terminal I/O. | Parsing/merge implementations. |
 | `internal/platformhome` | Cross-platform configuration-root policy. | Configuration content. |
 | `internal/config` | Types, strict loading, and scaffolding. | Semantic reference resolution. |
@@ -138,6 +138,31 @@ standard output and does not create an output file itself.
 | `internal/render` | Precedence, source resolution, redaction, encoding. | Infrastructure execution. |
 | `internal/schema` | Access to embedded schemas. | Runtime parsing/validation behavior. |
 | `schemas/` | Public versioned JSON Schemas embedded in the binary. | Operator configuration values. |
+| `internal/sharedroot` | Shared-root commands: root and name rules, the no-follow tree with atomic no-clobber publish, `shared-root.yaml` and shell-file parsers, `bootstrap-config`, `credential`, `doctor`. | The YAML model; consumer loaders; deleting or rewriting files. |
+
+## Shared-root commands
+
+`bootstrap-config`, `credential` and `doctor` do not use the YAML pipeline
+above. They implement the platform-catalog
+[provision shared root standard](https://github.com/ednillibanio/platform-catalog/blob/main/docs/standards/provision-shared-root-standard.md) in `internal/sharedroot`:
+
+- `root.go`, `names.go`: the root (`--config-dir`,
+  `ASSEMBLEIARR_CONFIG_DIR`, `~/.config/assembleiarr`) and the name
+  patterns, catalog environments and identity table mirrored from the
+  catalog, so no path leaves `<root>/<env>/`.
+- `tree_unix.go`: every access goes through directory file descriptors with
+  `O_NOFOLLOW`, so a symbolic link inside the tree is refused. A new file is
+  written under a temporary name with its final mode and published with
+  `link`, which fails when the name exists; a directory (the automation key
+  pair) is published with a no-replace rename (`renameat2` on Linux,
+  `renamex_np` on macOS). Nothing is ever overwritten or deleted.
+  `tree_other.go` returns "not supported" on other systems.
+- `declaration.go`, `shellfile.go`: strict parsers of `shared-root.yaml`
+  (version 1) and of `vars.sh`/`hosts/<consumer>.sh` (the consumer loaders'
+  literal-assignment grammar, including the unquoted `~` rule).
+- `bootstrap.go`, `keys.go`, `credential.go`, `doctor.go`: the commands.
+  Each validates every argument before it writes anything; `doctor` only
+  reads.
 
 ## Configuration and rendered models
 

@@ -57,6 +57,16 @@ Fora de escopo:
   `platform-modules-packer` são `reserved`; `terraform-provisioner` é
   `deprecated` (recusado como declaração e como diretório). Correção num PR
   próprio para `lab`, antes da etapa 06.
+- 2026-11-12: o platformctl é um produto genérico, sem acoplamento a nenhum
+  `provision-*`. A única fonte do contrato é o
+  `provision-shared-root-standard` do catálogo; exemplos, fixtures e testes
+  usam o consumidor neutro `provision-example`. O cruzamento com o loader do
+  `provision-semaphoreui` saiu da etapa 06 e da "Validação Esperada": provar
+  que o loader de um consumidor aceita a árvore é teste do próprio
+  consumidor (issue de adaptação dele). Só fatos espelhados do catálogo
+  (linhas da tabela de identidades em `names.go`) nomeiam consumidores. O
+  código já integrado na etapa 02 que ainda cita um consumidor é corrigido
+  num PR próprio depois da etapa 06.
 
 ## Etapas
 
@@ -67,7 +77,7 @@ Fora de escopo:
 | 03 | `done` | `steps/03-bootstrap-config.md` |
 | 04 | `done` | `steps/04-credential.md` |
 | 05 | `done` | `steps/05-doctor.md` |
-| 06 | `todo` | `steps/06-docs-e2e.md` |
+| 06 | `done` | `steps/06-docs-e2e.md` |
 | 07 | `todo` | `steps/07-release.md` |
 
 ## Critérios de Fechamento
@@ -89,8 +99,6 @@ Fora de escopo:
   nunca sobrescreve; `doctor` falha em `$(...)`, `~` sem aspas, chave
   duplicada, chave declarada ausente e arquivo solto em
   `credentials/target-<t>/`; `--format json` parseia e não contém secrets
-- cruzamento: o loader do `provision-semaphoreui`
-  (`hosts/vsphere/host.sh --target=<t> show`) aceita o skeleton preenchido
 - audit `technical-documentation` e `codex-review` em cada ponto de revisão
 
 ## Resultado

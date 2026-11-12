@@ -111,8 +111,8 @@ An existing file is skipped and reported, never overwritten. No value is
 ever printed.
 
 Exit status: 0 success, 1 problem, 2 usage error.`,
-		Example: `  platformctl credential --env lab --consumer provision-semaphoreui \
-    SEMAPHORE_DB_USER=semaphore SEMAPHORE_DB_PASS
+		Example: `  platformctl credential --env lab --consumer provision-example \
+    EXAMPLE_DB_USER=example EXAMPLE_DB_PASS
   read -rs GOVC_PASSWORD && printf '%s' "$GOVC_PASSWORD" | \
     platformctl credential --env lab --target vsphere-lab \
     --identity vcenter-access-admin GOVC_USERNAME=svc-access-admin GOVC_PASSWORD=-`,

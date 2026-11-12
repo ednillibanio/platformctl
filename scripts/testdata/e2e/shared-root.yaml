@@ -1,0 +1,27 @@
+# Key declaration used by scripts/e2e-shared-root.sh: a neutral consumer in
+# the shape of the "Key declaration" example of the platform-catalog
+# provision-shared-root-standard.md. No target_credentials: the only active
+# identity, vcenter-access-admin, belongs to provision-vsphere-platform, and
+# the e2e writes a target credential without declaring it.
+version: 1
+consumer: provision-example
+automation_key: true
+target:
+  - name: GOVC_URL
+    required: true
+    description: vCenter SDK URL of the target
+    example: https://vcenter.example.test/sdk
+  - name: GOVC_DATACENTER
+    required: true
+    description: Datacenter of the service hosts
+  - name: TARGET_FOLDER
+    required: false
+    description: VM folder of the service hosts
+host:
+  - name: HOST_IP
+    required: true
+    description: Static IPv4 address of the service host
+credentials:
+  - name: EXAMPLE_DB_PASS
+    required: true
+    description: Database password, generated at random

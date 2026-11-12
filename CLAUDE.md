@@ -22,6 +22,13 @@ the operator host (see "Disposable lab environments" and "Workflow" below).
 Windows uses `scripts\bootstrap-dev.ps1` / `scripts\go.ps1` with the same
 argument conventions.
 
+End-to-end check of the shared-root commands against a scratch root, with a
+neutral declaration (see `docs/development.md`):
+
+```bash
+./scripts/e2e-shared-root.sh
+```
+
 Static lab contract checks (Bash only, no Vagrant/Docker needed):
 
 ```bash
@@ -58,9 +65,23 @@ provisioner itself. It's intentionally a separate concern from
 library; successor to the archived `infra-gitops`), `provision-*` repos, and service CLIs like `glpictl` — those are
 future consumers of the rendered model, not dependencies of this repo.
 
-### Pipeline
+### Shared-root commands
 
-Commands in `internal/cli` (built on cobra) all funnel through the same
+`bootstrap-config`, `credential` and `doctor` (`internal/sharedroot`, wired
+in `internal/cli/sharedroot.go`) create and check the `provision-*` shared
+root, `${ASSEMBLEIARR_CONFIG_DIR:-~/.config/assembleiarr}/<env>/`, as
+defined by the platform-catalog `provision-shared-root-standard.md` (the
+standard wins over local docs). They do not use the YAML pipeline below.
+All tree access is fd-based with `O_NOFOLLOW`; new files are published with
+`link` and directories with a no-replace rename, so nothing is ever
+overwritten or deleted. Names, catalog environments and identities are
+mirrored in `names.go` and change with the catalog. Exit codes: 0 ok,
+1 problem, 2 usage error. Linux/macOS only; Windows returns "not supported".
+See `AGENTS.md` for the agent rules.
+
+### Pipeline (paused YAML model)
+
+The YAML model commands in `internal/cli` (built on cobra) funnel through the same
 sequence, and rendering stops immediately if any stage fails:
 
 1. **`internal/config`** — strict YAML parsing (`yaml.KnownFields(true)`,
