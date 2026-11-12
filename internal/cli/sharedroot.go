@@ -115,7 +115,7 @@ Exit status: 0 success, 1 problem, 2 usage error.`,
     SEMAPHORE_DB_USER=semaphore SEMAPHORE_DB_PASS
   read -rs GOVC_PASSWORD && printf '%s' "$GOVC_PASSWORD" | \
     platformctl credential --env lab --target vsphere-lab \
-    --identity terraform-provisioner GOVC_USERNAME=svc-terraform GOVC_PASSWORD=-`,
+    --identity vcenter-access-admin GOVC_USERNAME=svc-access-admin GOVC_PASSWORD=-`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Env == "" {
 				return sharedroot.Usagef("--env is required")

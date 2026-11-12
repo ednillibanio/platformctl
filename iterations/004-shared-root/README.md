@@ -51,6 +51,12 @@ Fora de escopo:
   `container/lab.sh` continua sendo o lab do CI.
 - D. Descrição do repositório no GitHub alinhada ao tipo Platform tooling.
 - `--env` é obrigatório em todo comando novo (sem ambiente padrão).
+- 2026-11-12: a tabela de identidades segue o standard do catálogo em
+  `main` c2696ab (ADR-0007): só `vcenter-access-admin` é `active`;
+  `provision-nexus3`, `provision-semaphoreui`, `platform-modules-live` e
+  `platform-modules-packer` são `reserved`; `terraform-provisioner` é
+  `deprecated` (recusado como declaração e como diretório). Correção num PR
+  próprio para `lab`, antes da etapa 06.
 
 ## Etapas
 

@@ -15,8 +15,9 @@ func TestNameValidation(t *testing.T) {
 			[]string{"", "Vsphere", "vsphere_lab", "-x", "x-", "x--y", "a/b", "..", "../x"}},
 		{"consumer", ValidateConsumer, []string{"provision-semaphoreui", "provision-vsphere-platform"},
 			[]string{"", "semaphoreui", "provision-", "Provision-x", "provision-x/y", "provision-..", "automation", "target-vsphere-lab"}},
-		{"identity", ValidateIdentity, []string{"terraform-provisioner", "vcenter-access-admin"},
-			[]string{"", "packer-builder", "semaphoreui", "unknown-identity", "Terraform-provisioner", "terraform/provisioner", ".."}},
+		{"identity", ValidateIdentity, []string{"vcenter-access-admin"},
+			[]string{"", "provision-semaphoreui", "provision-nexus3", "platform-modules-live", "platform-modules-packer",
+				"terraform-provisioner", "packer-builder", "semaphoreui", "unknown-identity", "Vcenter-access-admin", "vcenter/access", ".."}},
 		{"key", ValidateKey, []string{"GOVC_URL", "HOST_IP", "A", "X1_2"},
 			[]string{"", "govc_url", "1KEY", "_KEY", "KEY-NAME", "KEY/NAME", "..", "KEY NAME"}},
 	}

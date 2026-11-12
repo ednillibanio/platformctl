@@ -1,5 +1,7 @@
 # The example of the platform-catalog provision-shared-root-standard.md
-# ("Key declaration", main 561f0ca).
+# ("Key declaration", main 561f0ca), with the active identity
+# vcenter-access-admin: the example of main c2696ab names provision-example,
+# which is not a row of the "Identities" table.
 version: 1
 consumer: provision-example
 automation_key: true
@@ -18,6 +20,6 @@ credentials:
     description: Database password, generated at random
 target_credentials:
   - name: GOVC_PASSWORD
-    identity: terraform-provisioner
+    identity: vcenter-access-admin
     required: true
     description: Password of the vCenter account

@@ -12,12 +12,45 @@ var (
 	keyPattern      = regexp.MustCompile(`^[A-Z][A-Z0-9_]*$`)
 )
 
-// Identities of the standard ("Identities"). Only an active identity may be
-// declared or have a directory; a reserved one is rejected.
-var (
-	activeIdentities   = map[string]bool{"vcenter-access-admin": true, "terraform-provisioner": true}
-	reservedIdentities = map[string]bool{"packer-builder": true, "semaphoreui": true}
+// identityStatus is the status of an identity in the standard's
+// "Identities" table.
+type identityStatus int
+
+const (
+	identityUnknown identityStatus = iota
+	identityActive
+	identityReserved
+	identityDeprecated
 )
+
+// identities mirrors the "Identities" table of the platform-catalog
+// provision-shared-root-standard.md (main c2696ab, ADR-0007). Only an active
+// identity may be declared or have a directory; a reserved one is kept for a
+// later consumer and a deprecated one is only used by the legacy layout of
+// its consumers, so both are rejected like an unknown name.
+var identities = map[string]identityStatus{
+	"vcenter-access-admin":    identityActive,
+	"provision-nexus3":        identityReserved,
+	"provision-semaphoreui":   identityReserved,
+	"platform-modules-live":   identityReserved,
+	"platform-modules-packer": identityReserved,
+	"terraform-provisioner":   identityDeprecated,
+}
+
+// identityRejection returns why an identity name that matches the pattern
+// may not be declared or have a directory, or "" when it is active.
+func identityRejection(name string) string {
+	switch identities[name] {
+	case identityActive:
+		return ""
+	case identityReserved:
+		return "is reserved and cannot be used yet"
+	case identityDeprecated:
+		return "is deprecated: no new declaration and no directory (ADR-0007)"
+	default:
+		return "is not an active identity of the shared-root standard"
+	}
+}
 
 // knownEnvironments mirrors the platform-catalog catalog/environments/
 // entries (main 561f0ca). The catalog is not available at run time, so this
@@ -52,11 +85,8 @@ func ValidateIdentity(name string) error {
 	if err := match("identity", name, identityPattern); err != nil {
 		return err
 	}
-	if reservedIdentities[name] {
-		return Usagef("identity %q is reserved and cannot be used yet", name)
-	}
-	if !activeIdentities[name] {
-		return Usagef("identity %q is not an active identity of the shared-root standard", name)
+	if why := identityRejection(name); why != "" {
+		return Usagef("identity %q %s", name, why)
 	}
 	return nil
 }

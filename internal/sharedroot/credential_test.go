@@ -197,13 +197,13 @@ func TestCredentialTargetIdentity(t *testing.T) {
 	root := t.TempDir()
 	var out bytes.Buffer
 	opts := CredentialOptions{
-		Root: root, Env: "lab", Target: "vsphere-lab", Identity: "terraform-provisioner",
+		Root: root, Env: "lab", Target: "vsphere-lab", Identity: "vcenter-access-admin",
 		Specs: []string{"GOVC_USERNAME=svc", "GOVC_PASSWORD=-"}, Stdin: strings.NewReader("pw"), Out: &out,
 	}
 	if err := Credential(opts); err != nil {
 		t.Fatal(err)
 	}
-	dir := filepath.Join(root, "lab", "credentials", "target-vsphere-lab", "terraform-provisioner")
+	dir := filepath.Join(root, "lab", "credentials", "target-vsphere-lab", "vcenter-access-admin")
 	if got := readCredential(t, filepath.Join(dir, "GOVC_PASSWORD")); got != "pw" {
 		t.Errorf("GOVC_PASSWORD = %q", got)
 	}
@@ -214,12 +214,13 @@ func TestCredentialUsageErrors(t *testing.T) {
 		"no destination":         {Env: "lab", Specs: []string{"A"}},
 		"unknown env":            {Env: "dev", Consumer: "provision-example", Specs: []string{"A"}},
 		"bad consumer":           {Env: "lab", Consumer: "automation", Specs: []string{"A"}},
-		"consumer and target":    {Env: "lab", Consumer: "provision-example", Target: "t", Identity: "terraform-provisioner", Specs: []string{"A"}},
+		"consumer and target":    {Env: "lab", Consumer: "provision-example", Target: "t", Identity: "vcenter-access-admin", Specs: []string{"A"}},
 		"target without id":      {Env: "lab", Target: "vsphere-lab", Specs: []string{"A"}},
-		"identity without tgt":   {Env: "lab", Identity: "terraform-provisioner", Specs: []string{"A"}},
-		"reserved identity":      {Env: "lab", Target: "vsphere-lab", Identity: "semaphoreui", Specs: []string{"A"}},
+		"identity without tgt":   {Env: "lab", Identity: "vcenter-access-admin", Specs: []string{"A"}},
+		"reserved identity":      {Env: "lab", Target: "vsphere-lab", Identity: "provision-semaphoreui", Specs: []string{"A"}},
+		"deprecated identity":    {Env: "lab", Target: "vsphere-lab", Identity: "terraform-provisioner", Specs: []string{"A"}},
 		"unknown identity":       {Env: "lab", Target: "vsphere-lab", Identity: "root", Specs: []string{"A"}},
-		"traversal target":       {Env: "lab", Target: "../x", Identity: "terraform-provisioner", Specs: []string{"A"}},
+		"traversal target":       {Env: "lab", Target: "../x", Identity: "vcenter-access-admin", Specs: []string{"A"}},
 		"no names":               {Env: "lab", Consumer: "provision-example"},
 		"bad name":               {Env: "lab", Consumer: "provision-example", Specs: []string{"db_pass"}},
 		"path name":              {Env: "lab", Consumer: "provision-example", Specs: []string{"../A"}},

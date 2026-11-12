@@ -102,7 +102,7 @@ func TestCredentialUsageErrors(t *testing.T) {
 		{"credential", "--env", "lab", "--consumer", "provision-example", "--config-dir", root, "--length", "x", "A"},
 		{"credential", "--env", "lab", "--consumer", "provision-example", "--config-dir", root},
 		{"credential", "--env", "lab", "--target", "vsphere-lab", "--config-dir", root, "A"},
-		{"credential", "--env", "lab", "--target", "vsphere-lab", "--identity", "packer-builder", "--config-dir", root, "A"},
+		{"credential", "--env", "lab", "--target", "vsphere-lab", "--identity", "terraform-provisioner", "--config-dir", root, "A"},
 	}
 	for _, args := range cases {
 		_, _, err := runCLI(t, "secret", args...)
@@ -121,7 +121,7 @@ func TestCredentialCommand(t *testing.T) {
 	}
 	root := filepath.Join(t.TempDir(), "assembleiarr")
 	t.Setenv(sharedroot.EnvVar, root)
-	args := []string{"credential", "--env", "lab", "--target", "vsphere-lab", "--identity", "terraform-provisioner",
+	args := []string{"credential", "--env", "lab", "--target", "vsphere-lab", "--identity", "vcenter-access-admin",
 		"GOVC_USERNAME=svc", "GOVC_PASSWORD=-", "--length", "16", "RANDOM_KEY"}
 	out, _, err := runCLI(t, "pw-from-stdin\n", args...)
 	if err != nil {
@@ -130,7 +130,7 @@ func TestCredentialCommand(t *testing.T) {
 	if strings.Contains(out, "pw-from-stdin") || strings.Contains(out, "svc\n") {
 		t.Fatalf("output holds a value:\n%s", out)
 	}
-	dir := filepath.Join(root, "lab", "credentials", "target-vsphere-lab", "terraform-provisioner")
+	dir := filepath.Join(root, "lab", "credentials", "target-vsphere-lab", "vcenter-access-admin")
 	if data, err := os.ReadFile(filepath.Join(dir, "GOVC_PASSWORD")); err != nil || string(data) != "pw-from-stdin" {
 		t.Fatalf("GOVC_PASSWORD: %q %v", data, err)
 	}
