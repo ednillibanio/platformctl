@@ -1,6 +1,6 @@
 # Etapa: Guias do operador
 
-Status: `doing`
+Status: `done`
 
 ## Objetivo
 
@@ -39,7 +39,7 @@ checagem de links/âncoras.
 
 ## Resultado
 
-Implementado (2026-11-12), aguardando revisão e OK do operador.
+Implementado e aprovado pelo operador (2026-11-12).
 
 - `docs/shared-root-concepts.md` e `docs/shared-root-declaration.md`
   novos, citando o standard do catálogo como fonte e só o consumidor neutro
