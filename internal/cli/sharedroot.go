@@ -82,3 +82,66 @@ Exit status: 0 success, 1 problem, 2 usage error.`,
 	flags.BoolVar(&opts.DryRun, "dry-run", false, "print every action and change nothing")
 	return command
 }
+
+func credentialCommand(stdout io.Writer) *cobra.Command {
+	var opts sharedroot.CredentialOptions
+	var configDir string
+	command := &cobra.Command{
+		Use:   "credential --env <env> (--consumer <c> | --target <t> --identity <i>) NAME[=VALUE | =-]...",
+		Short: "Create credential files in the provision-* shared root",
+		Long: `Create credential files in the provision-* shared root.
+
+--consumer <c> writes under <root>/<env>/credentials/<c>/; --target <t>
+--identity <i> writes under <root>/<env>/credentials/target-<t>/<i>/, where
+<i> is an active identity of the shared-root standard. Missing directories
+are created with mode 0700. The root is --config-dir, else
+ASSEMBLEIARR_CONFIG_DIR, else ~/.config/assembleiarr.
+
+Each argument creates one file, mode 0600, with no trailing newline:
+
+  NAME          a random value: --length bytes (default 32) from the system's
+                cryptographic random source, base64 encoded
+  NAME=VALUE    VALUE literally; only for non-secret defaults, because a
+                command-line argument is visible to other processes
+  NAME=-        the value read from standard input (one trailing newline is
+                dropped); use it for a secret the operator supplies. Only
+                one NAME=- per run.
+
+An existing file is skipped and reported, never overwritten. No value is
+ever printed.
+
+Exit status: 0 success, 1 problem, 2 usage error.`,
+		Example: `  platformctl credential --env lab --consumer provision-semaphoreui \
+    SEMAPHORE_DB_USER=semaphore SEMAPHORE_DB_PASS
+  read -rs GOVC_PASSWORD && printf '%s' "$GOVC_PASSWORD" | \
+    platformctl credential --env lab --target vsphere-lab \
+    --identity terraform-provisioner GOVC_USERNAME=svc-terraform GOVC_PASSWORD=-`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.Env == "" {
+				return sharedroot.Usagef("--env is required")
+			}
+			if cmd.Flags().Changed("length") && opts.Length == 0 {
+				return sharedroot.Usagef("--length must be between 1 and %d, got 0", sharedroot.MaxCredentialLength)
+			}
+			root, err := sharedroot.ResolveRoot(configDir)
+			if err != nil {
+				return err
+			}
+			opts.Root = root
+			opts.Specs = args
+			opts.Stdin = cmd.InOrStdin()
+			opts.Out = stdout
+			return sharedroot.Credential(opts)
+		},
+	}
+	command.SetFlagErrorFunc(usageFlagError)
+	flags := command.Flags()
+	flags.StringVar(&opts.Env, "env", "", "environment, one of the platform-catalog environments (required)")
+	flags.StringVar(&opts.Consumer, "consumer", "", "consumer (provision-* repository) name")
+	flags.StringVar(&opts.Target, "target", "", "target name (requires --identity)")
+	flags.StringVar(&opts.Identity, "identity", "", "active identity of the target (requires --target)")
+	flags.IntVar(&opts.Length, "length", sharedroot.DefaultCredentialLength, "random bytes before base64 encoding")
+	flags.StringVar(&configDir, "config-dir", "", "shared root (default ASSEMBLEIARR_CONFIG_DIR, else ~/.config/assembleiarr)")
+	flags.BoolVar(&opts.DryRun, "dry-run", false, "print every action and change nothing")
+	return command
+}
