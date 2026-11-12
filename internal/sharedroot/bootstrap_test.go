@@ -26,8 +26,8 @@ import (
 var update = flag.Bool("update", false, "rewrite the golden files")
 
 var testDecls = []string{
-	filepath.Join("testdata", "bootstrap", "semaphoreui.yaml"),
-	filepath.Join("testdata", "bootstrap", "nexus3.yaml"),
+	filepath.Join("testdata", "bootstrap", "example.yaml"),
+	filepath.Join("testdata", "bootstrap", "sample.yaml"),
 }
 
 func bootstrapOpts(root string) (BootstrapOptions, *bytes.Buffer, *bytes.Buffer) {
@@ -106,9 +106,9 @@ func TestBootstrapGolden(t *testing.T) {
 		t.Fatalf("Bootstrap: %v", err)
 	}
 	files := map[string]string{
-		"vars.sh.golden":                     "lab/targets/vsphere-lab/vars.sh",
-		"hosts-provision-semaphoreui.golden": "lab/targets/vsphere-lab/hosts/provision-semaphoreui.sh",
-		"hosts-provision-nexus3.golden":      "lab/targets/vsphere-lab/hosts/provision-nexus3.sh",
+		"vars.sh.golden":                 "lab/targets/vsphere-lab/vars.sh",
+		"hosts-provision-example.golden": "lab/targets/vsphere-lab/hosts/provision-example.sh",
+		"hosts-provision-sample.golden":  "lab/targets/vsphere-lab/hosts/provision-sample.sh",
 	}
 	got := map[string][]byte{"output.golden": []byte(strings.ReplaceAll(out.String(), root, "<root>"))}
 	for golden, rel := range files {
@@ -134,7 +134,7 @@ func TestBootstrapGolden(t *testing.T) {
 			t.Errorf("%s differs:\n--- got\n%s\n--- want\n%s", golden, data, want)
 		}
 	}
-	wantWarn := "warning: provision-semaphoreui uses the automation key pair: run with --automation-key on the first controller of lab, --automation-key-import - on the others\n"
+	wantWarn := "warning: provision-example uses the automation key pair: run with --automation-key on the first controller of lab, --automation-key-import - on the others\n"
 	if errOut.String() != wantWarn {
 		t.Errorf("warnings %q, want %q", errOut, wantWarn)
 	}
@@ -157,7 +157,7 @@ func TestBootstrapSkeletonParsesAsPlaceholders(t *testing.T) {
 		keys []string
 	}{
 		{"lab/targets/vsphere-lab/vars.sh", VarsFile, []string{"GOVC_URL", "TARGET_FOLDER", "TARGET_DATASTORE"}},
-		{"lab/targets/vsphere-lab/hosts/provision-semaphoreui.sh", HostsFile, []string{"HOST_IP"}},
+		{"lab/targets/vsphere-lab/hosts/provision-example.sh", HostsFile, []string{"HOST_IP"}},
 	}
 	for _, tc := range cases {
 		data, _ := os.ReadFile(filepath.Join(root, tc.rel))
@@ -250,7 +250,7 @@ func TestBootstrapUsageErrors(t *testing.T) {
 	mutate := []func(*BootstrapOptions){
 		func(o *BootstrapOptions) { o.Env = "homol" },
 		func(o *BootstrapOptions) { o.Targets = []string{"Bad_Target"} },
-		func(o *BootstrapOptions) { o.Consumers = []string{"semaphoreui"} },
+		func(o *BootstrapOptions) { o.Consumers = []string{"example"} },
 		func(o *BootstrapOptions) { o.AutomationKey = true; o.ImportKey = strings.NewReader("") },
 		func(o *BootstrapOptions) { o.Declarations = append(o.Declarations, testDecls[0]) },
 	}
@@ -342,11 +342,11 @@ func TestBootstrapGenericSkeleton(t *testing.T) {
 	// A consumer without a declaration next to declared ones is warned about.
 	root2 := filepath.Join(t.TempDir(), "assembleiarr")
 	opts, _, errOut = bootstrapOpts(root2)
-	opts.Consumers = []string{"provision-example"}
+	opts.Consumers = []string{"provision-other"}
 	if err := Bootstrap(opts); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(errOut.String(), "no declaration for consumer provision-example") {
+	if !strings.Contains(errOut.String(), "no declaration for consumer provision-other") {
 		t.Fatalf("no warning: %q", errOut)
 	}
 }

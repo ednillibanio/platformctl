@@ -35,11 +35,11 @@ type ShellFile struct {
 	Placeholders []Placeholder
 }
 
-// Line grammar of the standard ("File format"), the same as the
-// provision-semaphoreui loader (hosts/lib/config.sh, "Key rules") plus the
-// `~` rule: an unquoted value has no spaces, shell characters, quotes or `~`;
-// a single-quoted value has no `'`; a double-quoted value has no $ ` \ or ".
-// Like the loader, an assignment may be followed by whitespace and a comment.
+// Line grammar of the platform-catalog provision-shared-root-standard.md
+// ("File format"): an unquoted value has no spaces, shell characters, quotes
+// or `~`; a single-quoted value has no `'`; a double-quoted value has no
+// $ ` \ or ". An assignment may be followed by whitespace and a comment,
+// which the shell ignores when the file is sourced.
 var (
 	blankOrComment = regexp.MustCompile(`^\s*(#.*)?$`)
 	assignmentLine = regexp.MustCompile("^\\s*(?:export\\s+)?([A-Za-z_][A-Za-z0-9_]*)=" +
