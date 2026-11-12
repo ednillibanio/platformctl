@@ -28,11 +28,11 @@ func healthyTree(t *testing.T) string {
 	}
 	vars := filepath.Join(root, "lab", "targets", "vsphere-lab", "vars.sh")
 	writeKeep(t, vars, "GOVC_URL=https://vcenter.lab.test/sdk\nTARGET_FOLDER='/dc/vm/services'\n# TARGET_DATASTORE=\n")
-	for _, c := range []string{"provision-semaphoreui", "provision-nexus3"} {
+	for _, c := range []string{"provision-example", "provision-sample"} {
 		writeKeep(t, filepath.Join(root, "lab", "targets", "vsphere-lab", "hosts", c+".sh"), "HOST_IP=192.0.2.10\n")
 	}
 	for _, o := range []CredentialOptions{
-		{Consumer: "provision-semaphoreui", Specs: []string{"SEMAPHORE_DB_PASS=-"}, Stdin: strings.NewReader(testDBPass)},
+		{Consumer: "provision-example", Specs: []string{"EXAMPLE_DB_PASS=-"}, Stdin: strings.NewReader(testDBPass)},
 		{Target: "vsphere-lab", Identity: "vcenter-access-admin", Specs: []string{"GOVC_PASSWORD=-"}, Stdin: strings.NewReader(testGovcPass)},
 	} {
 		o.Root, o.Env, o.Out = root, "lab", &bytes.Buffer{}
@@ -58,13 +58,13 @@ func writeKeep(t *testing.T, path, content string) {
 func doctorDecls(t *testing.T) []string {
 	t.Helper()
 	dir := t.TempDir()
-	semaphore, err := os.ReadFile(testDecls[0])
+	example, err := os.ReadFile(testDecls[0])
 	if err != nil {
 		t.Fatal(err)
 	}
-	semaphore = append(semaphore, []byte("credentials:\n  - name: SEMAPHORE_DB_PASS\n    required: true\n    description: Database password\n")...)
-	path := filepath.Join(dir, "semaphoreui.yaml")
-	if err := os.WriteFile(path, semaphore, 0o644); err != nil {
+	example = append(example, []byte("credentials:\n  - name: EXAMPLE_DB_PASS\n    required: true\n    description: Database password\n")...)
+	path := filepath.Join(dir, "example.yaml")
+	if err := os.WriteFile(path, example, 0o644); err != nil {
 		t.Fatal(err)
 	}
 	return []string{path, testDecls[1]}
@@ -93,13 +93,13 @@ func TestDoctorHealthyTree(t *testing.T) {
 	}
 	assertSameSnapshot(t, before, snapshot(t, root))
 	tr := report.Targets["vsphere-lab"]
-	if tr == nil || tr.Vars["GOVC_URL"] != "https://vcenter.lab.test/sdk" || tr.Hosts["provision-nexus3"]["HOST_IP"] != "192.0.2.10" {
+	if tr == nil || tr.Vars["GOVC_URL"] != "https://vcenter.lab.test/sdk" || tr.Hosts["provision-sample"]["HOST_IP"] != "192.0.2.10" {
 		t.Errorf("non-secret values missing: %+v", tr)
 	}
 	if got := tr.Credentials["vcenter-access-admin"]; len(got) != 1 || got[0] != "GOVC_PASSWORD" {
 		t.Errorf("target credential names: %v", got)
 	}
-	if got := report.Credentials["provision-semaphoreui"]; len(got) != 1 || got[0] != "SEMAPHORE_DB_PASS" {
+	if got := report.Credentials["provision-example"]; len(got) != 1 || got[0] != "EXAMPLE_DB_PASS" {
 		t.Errorf("credential names: %v", got)
 	}
 	if report.AutomationKey == nil || !strings.HasPrefix(report.AutomationKey.Fingerprint, "SHA256:") {
@@ -120,7 +120,7 @@ func TestDoctorNeverPrintsSecrets(t *testing.T) {
 	// Leak both secrets into shared files so findings are about them.
 	vars := filepath.Join(root, "lab", "targets", "vsphere-lab", "vars.sh")
 	writeKeep(t, vars, "GOVC_URL=https://vcenter.lab.test/sdk\nTARGET_FOLDER="+testGovcPass+"\n")
-	writeKeep(t, filepath.Join(root, "lab", "targets", "vsphere-lab", "hosts", "provision-semaphoreui.sh"), "HOST_IP="+testDBPass+"\n")
+	writeKeep(t, filepath.Join(root, "lab", "targets", "vsphere-lab", "hosts", "provision-example.sh"), "HOST_IP="+testDBPass+"\n")
 	secrets := []string{testDBPass, testGovcPass, string(bytes.TrimSpace(private))}
 	for _, line := range strings.Split(string(private), "\n")[1:3] {
 		secrets = append(secrets, line)
@@ -170,7 +170,7 @@ func TestDoctorChecks(t *testing.T) {
 		{"directory mode", false, func(t *testing.T, r string) { chmod(t, env(r, "credentials"), 0o755) }, "mode 0755, want 0700"},
 		{"shared file mode", false, func(t *testing.T, r string) { chmod(t, env(r, "targets", "vsphere-lab", "vars.sh"), 0o600) }, "mode 0600, want 0644"},
 		{"credential mode", false, func(t *testing.T, r string) {
-			chmod(t, env(r, "credentials", "provision-semaphoreui", "SEMAPHORE_DB_PASS"), 0o644)
+			chmod(t, env(r, "credentials", "provision-example", "EXAMPLE_DB_PASS"), 0o644)
 		}, "mode 0644, want 0600"},
 		{"private key mode", false, func(t *testing.T, r string) { chmod(t, env(r, "credentials", "automation", "ssh_ed25519"), 0o640) }, "mode 0640, want 0600"},
 		{"symlink", false, func(t *testing.T, r string) {
@@ -192,23 +192,23 @@ func TestDoctorChecks(t *testing.T) {
 			writeKeep(t, env(r, "targets", "vsphere-lab", "vars.sh"), "HOST_IP=192.0.2.1\n")
 		}, "vars.sh holds only"},
 		{"target key in hosts file", false, func(t *testing.T, r string) {
-			writeKeep(t, env(r, "targets", "vsphere-lab", "hosts", "provision-nexus3.sh"), "GOVC_URL=x\n")
+			writeKeep(t, env(r, "targets", "vsphere-lab", "hosts", "provision-sample.sh"), "GOVC_URL=x\n")
 		}, "a hosts file holds only HOST_*"},
 		{"required key placeholder", true, func(t *testing.T, r string) {
 			writeKeep(t, env(r, "targets", "vsphere-lab", "vars.sh"), "GOVC_URL=https://x\n# TARGET_FOLDER=\n")
 		}, "TARGET_FOLDER: required key is still a placeholder"},
 		{"required key empty", true, func(t *testing.T, r string) {
-			writeKeep(t, env(r, "targets", "vsphere-lab", "hosts", "provision-nexus3.sh"), "HOST_IP=\n")
+			writeKeep(t, env(r, "targets", "vsphere-lab", "hosts", "provision-sample.sh"), "HOST_IP=\n")
 		}, "HOST_IP: required key is empty"},
 		{"required key missing", true, func(t *testing.T, r string) {
 			writeKeep(t, env(r, "targets", "vsphere-lab", "vars.sh"), "TARGET_FOLDER=x\n")
 		}, "GOVC_URL: required key missing"},
 		{"required credential missing", true, func(t *testing.T, r string) {
-			remove(t, env(r, "credentials", "provision-semaphoreui", "SEMAPHORE_DB_PASS"))
-		}, "required credential of provision-semaphoreui missing"},
+			remove(t, env(r, "credentials", "provision-example", "EXAMPLE_DB_PASS"))
+		}, "required credential of provision-example missing"},
 		{"required target credential missing", true, func(t *testing.T, r string) {
 			remove(t, env(r, "credentials", "target-vsphere-lab", "vcenter-access-admin", "GOVC_PASSWORD"))
-		}, "required target credential of provision-semaphoreui missing"},
+		}, "required target credential of provision-example missing"},
 		{"declared key pair missing", true, func(t *testing.T, r string) {
 			remove(t, env(r, "credentials", "automation"))
 		}, "uses the automation key pair, which is missing"},
@@ -217,14 +217,14 @@ func TestDoctorChecks(t *testing.T) {
 		}, "names a declared credential"},
 		{"credential value in shared file", true, func(t *testing.T, r string) {
 			write(t, env(r, "targets", "vsphere-lab", "ca.pem"), "x"+testDBPass+"x", 0o644)
-		}, "holds the value of credential SEMAPHORE_DB_PASS"},
+		}, "holds the value of credential EXAMPLE_DB_PASS"},
 		{"credential value in unknown readable file", true, func(t *testing.T, r string) {
 			mkdir(t, env(r, "extra"))
 			write(t, env(r, "extra", "notes.txt"), "password: "+testGovcPass, 0o644)
 		}, "notes.txt: GOVC_PASSWORD: a file readable by others holds the value"},
 		{"credential value in mis-moded credential file", true, func(t *testing.T, r string) {
-			write(t, env(r, "credentials", "provision-semaphoreui", "COPY"), testDBPass, 0o640)
-		}, "COPY: SEMAPHORE_DB_PASS: a file readable by others holds the value"},
+			write(t, env(r, "credentials", "provision-example", "COPY"), testDBPass, 0o640)
+		}, "COPY: EXAMPLE_DB_PASS: a file readable by others holds the value"},
 		{"key pair mismatch", false, func(t *testing.T, r string) {
 			other, err := GenerateAutomationKey("lab")
 			if err != nil {
@@ -236,13 +236,13 @@ func TestDoctorChecks(t *testing.T) {
 			remove(t, env(r, "credentials", "automation", "ssh_ed25519.pub"))
 		}, "incomplete automation key pair"},
 		{"temporary file", false, func(t *testing.T, r string) {
-			write(t, env(r, "credentials", "provision-semaphoreui", TempPrefix+"abc"), "x", 0o600)
+			write(t, env(r, "credentials", "provision-example", TempPrefix+"abc"), "x", 0o600)
 		}, "temporary entry left by an interrupted"},
 		{"temporary directory", false, func(t *testing.T, r string) {
 			mkdir(t, env(r, "credentials", TempPrefix+"abc"))
 		}, "temporary entry left by an interrupted"},
 		{"empty credential", false, func(t *testing.T, r string) {
-			write(t, env(r, "credentials", "provision-semaphoreui", "EMPTY"), "", 0o600)
+			write(t, env(r, "credentials", "provision-example", "EMPTY"), "", 0o600)
 		}, "empty credential file"},
 		{"file directly under target credentials", false, func(t *testing.T, r string) {
 			write(t, env(r, "credentials", "target-vsphere-lab", "GOVC_PASSWORD"), "x", 0o600)
@@ -270,8 +270,8 @@ func TestDoctorChecks(t *testing.T) {
 			remove(t, env(r, "targets", "vsphere-lab", "vars.sh"))
 		}, "vars.sh: missing"},
 		{"missing hosts file of declared consumer", true, func(t *testing.T, r string) {
-			remove(t, env(r, "targets", "vsphere-lab", "hosts", "provision-nexus3.sh"))
-		}, "missing hosts file of provision-nexus3"},
+			remove(t, env(r, "targets", "vsphere-lab", "hosts", "provision-sample.sh"))
+		}, "missing hosts file of provision-sample"},
 		{"unknown directory mode", false, func(t *testing.T, r string) {
 			mkdir(t, env(r, "extra", "deeper"))
 			chmod(t, env(r, "extra", "deeper"), 0o755)
@@ -285,8 +285,8 @@ func TestDoctorChecks(t *testing.T) {
 			write(t, env(r, "targets", "vsphere-lab", "misc", TempPrefix+"x"), "x", 0o600)
 		}, "temporary entry left by an interrupted"},
 		{"state file mode", false, func(t *testing.T, r string) {
-			mkdir(t, env(r, "state", "provision-semaphoreui", "vsphere-lab"))
-			write(t, env(r, "state", "provision-semaphoreui", "vsphere-lab", "terraform.tfstate"), "{}", 0o644)
+			mkdir(t, env(r, "state", "provision-example", "vsphere-lab"))
+			write(t, env(r, "state", "provision-example", "vsphere-lab", "terraform.tfstate"), "{}", 0o644)
 		}, "mode 0644, want 0600"},
 	}
 	for _, tc := range cases {
@@ -328,7 +328,7 @@ func TestDoctorWarnings(t *testing.T) {
 	root := healthyTree(t)
 	env := func(rel ...string) string { return filepath.Join(append([]string{root, "lab"}, rel...)...) }
 	writeKeep(t, env("targets", "vsphere-lab", "vars.sh"), "GOVC_URL=https://x\nTARGET_FOLDER=x\nTARGET_EXTRA=1\n")
-	write(t, env("credentials", "provision-semaphoreui", "UNDECLARED"), "value", 0o600)
+	write(t, env("credentials", "provision-example", "UNDECLARED"), "value", 0o600)
 	write(t, env("notes.txt"), "x", 0o600)
 	report, out, err := runDoctor(t, root, doctorDecls(t), "json")
 	if err != nil {

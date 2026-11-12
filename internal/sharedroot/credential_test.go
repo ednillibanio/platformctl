@@ -52,13 +52,13 @@ func readCredential(t *testing.T, path string) string {
 
 func TestCredentialFormats(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "assembleiarr")
-	opts, out := credentialOpts(root, "DB_USER=semaphore", "DB_PASS", "API_TOKEN=-")
+	opts, out := credentialOpts(root, "DB_USER=app-user", "DB_PASS", "API_TOKEN=-")
 	opts.Stdin = strings.NewReader("s3cret-from-stdin\n")
 	if err := Credential(opts); err != nil {
 		t.Fatal(err)
 	}
 	dir := filepath.Join(root, "lab", "credentials", "provision-example")
-	if got := readCredential(t, filepath.Join(dir, "DB_USER")); got != "semaphore" {
+	if got := readCredential(t, filepath.Join(dir, "DB_USER")); got != "app-user" {
 		t.Errorf("DB_USER = %q", got)
 	}
 	if got := readCredential(t, filepath.Join(dir, "API_TOKEN")); got != "s3cret-from-stdin" {
@@ -74,7 +74,7 @@ func TestCredentialFormats(t *testing.T) {
 			t.Errorf("%s: %v %v, want 0700", d, info, err)
 		}
 	}
-	for _, secret := range []string{"semaphore", "s3cret-from-stdin", random} {
+	for _, secret := range []string{"app-user", "s3cret-from-stdin", random} {
 		if strings.Contains(out.String(), secret) {
 			t.Errorf("output holds a value: %s", out.String())
 		}

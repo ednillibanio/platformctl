@@ -1,5 +1,5 @@
 version: 1
-consumer: provision-nexus3
+consumer: provision-sample
 target:
   - name: GOVC_URL
     required: true
@@ -10,4 +10,4 @@ target:
 host:
   - name: HOST_IP
     required: true
-    description: Static IPv4 address of the Nexus host
+    description: Static IPv4 address of the service host

@@ -66,7 +66,7 @@ func TestDeclarationRefusals(t *testing.T) {
 		{"string version", "version: \"1\"\nconsumer: provision-x\n", "version: must be an integer"},
 		{"unsupported version", "version: 2\nconsumer: provision-x\n", "unsupported version 2"},
 		{"old version", "version: 0\nconsumer: provision-x\n", "unsupported version 0"},
-		{"bad consumer", "version: 1\nconsumer: semaphoreui\n", "invalid consumer name"},
+		{"bad consumer", "version: 1\nconsumer: example\n", "invalid consumer name"},
 		{"unknown top field", head + "extra: 1\n", "extra: unknown field"},
 		{"duplicate top field", head + "consumer: provision-y\n", "consumer: field set twice"},
 		{"automation_key string", head + "automation_key: yes-please\n", "automation_key: must be true or false"},
