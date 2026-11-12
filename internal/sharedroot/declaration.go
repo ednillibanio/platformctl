@@ -354,12 +354,10 @@ func (p *declParser) targetCredentialEntries(n *yaml.Node) []TargetCredentialEnt
 		if v, ok := e.fields["identity"]; !ok {
 			p.add(e.line, e.name+".identity", "required field is missing")
 		} else if s, ok := p.str(v, e.name+".identity"); ok {
-			if err := ValidateIdentity(s); err != nil {
-				msg := "not an active identity of the shared-root standard"
-				if reservedIdentities[s] {
-					msg = "identity is reserved and cannot be used yet"
-				}
-				p.add(v.Line, e.name+".identity", msg)
+			if !identityPattern.MatchString(s) {
+				p.add(v.Line, e.name+".identity", "invalid identity name: must match "+identityPattern.String())
+			} else if why := identityRejection(s); why != "" {
+				p.add(v.Line, e.name+".identity", "identity "+why)
 			} else {
 				identity = s
 			}

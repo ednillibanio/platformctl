@@ -20,7 +20,7 @@ func TestDeclarationStandardExample(t *testing.T) {
 		t.Fatalf("header: %+v", decl)
 	}
 	if len(decl.Target) != 1 || decl.Target[0] != (KeyEntry{Name: "GOVC_URL", Required: true,
-		Description: "vCenter SDK URL of the target", Example: "https://vcenter.example.test/sdk", Line: 7}) {
+		Description: "vCenter SDK URL of the target", Example: "https://vcenter.example.test/sdk", Line: 9}) {
 		t.Fatalf("target: %+v", decl.Target)
 	}
 	if len(decl.Host) != 1 || decl.Host[0].Name != "HOST_IP" || !decl.Host[0].Required {
@@ -29,7 +29,7 @@ func TestDeclarationStandardExample(t *testing.T) {
 	if len(decl.Credentials) != 1 || decl.Credentials[0].Name != "EXAMPLE_DB_PASS" {
 		t.Fatalf("credentials: %+v", decl.Credentials)
 	}
-	if len(decl.TargetCredentials) != 1 || decl.TargetCredentials[0].Identity != "terraform-provisioner" {
+	if len(decl.TargetCredentials) != 1 || decl.TargetCredentials[0].Identity != "vcenter-access-admin" {
 		t.Fatalf("target_credentials: %+v", decl.TargetCredentials)
 	}
 }
@@ -39,10 +39,13 @@ func TestDeclarationMinimal(t *testing.T) {
 	if err != nil || decl.AutomationKey || decl.Target != nil {
 		t.Fatalf("decl %+v, err %v", decl, err)
 	}
-	// Same name for two identities is allowed.
+	// Same name for two identities is allowed. The standard has one active
+	// identity today, so the test activates a second one.
+	identities["provision-x"] = identityActive
+	t.Cleanup(func() { delete(identities, "provision-x") })
 	two := "version: 1\nconsumer: provision-x\ntarget_credentials:\n" +
-		"  - {name: GOVC_PASSWORD, identity: terraform-provisioner, required: true, description: a}\n" +
-		"  - {name: GOVC_PASSWORD, identity: vcenter-access-admin, required: true, description: b}\n"
+		"  - {name: GOVC_PASSWORD, identity: vcenter-access-admin, required: true, description: a}\n" +
+		"  - {name: GOVC_PASSWORD, identity: provision-x, required: true, description: b}\n"
 	if _, err := ParseDeclaration("d.yaml", []byte(two)); err != nil {
 		t.Fatalf("two identities: %v", err)
 	}
@@ -71,7 +74,7 @@ func TestDeclarationRefusals(t *testing.T) {
 		{"entry not a mapping", head + "target:\n  - GOVC_URL\n", "each entry must be a mapping"},
 		{"unknown entry field", head + "target:\n  - {name: GOVC_URL, required: true, description: d, secret: x}\n", "target.secret: unknown field"},
 		{"example in credentials", head + "credentials:\n  - {name: A_PASS, required: true, description: d, example: x}\n", "credentials.example: unknown field"},
-		{"identity in target", head + "target:\n  - {name: GOVC_URL, required: true, description: d, identity: terraform-provisioner}\n", "target.identity: unknown field"},
+		{"identity in target", head + "target:\n  - {name: GOVC_URL, required: true, description: d, identity: vcenter-access-admin}\n", "target.identity: unknown field"},
 		{"missing name", head + "target:\n  - {required: true, description: d}\n", "target.name: required field is missing"},
 		{"bad name", head + "target:\n  - {name: govc_url, required: true, description: d}\n", "invalid name"},
 		{"missing required", head + "target:\n  - {name: GOVC_URL, description: d}\n", "GOVC_URL.required: required field is missing"},
@@ -83,9 +86,11 @@ func TestDeclarationRefusals(t *testing.T) {
 		{"host prefix", head + "host:\n  - {name: GOVC_URL, required: true, description: d}\n", "host keys start with HOST_"},
 		{"duplicate target", head + "target:\n  - {name: GOVC_URL, required: true, description: d}\n  - {name: GOVC_URL, required: false, description: e}\n", "declared twice in target (first on line 4)"},
 		{"duplicate credential", head + "credentials:\n  - {name: A, required: true, description: d}\n  - {name: A, required: true, description: d}\n", "declared twice in credentials"},
-		{"duplicate target credential", head + "target_credentials:\n  - {name: P, identity: terraform-provisioner, required: true, description: d}\n  - {name: P, identity: terraform-provisioner, required: true, description: d}\n", "declared twice for the same identity"},
+		{"duplicate target credential", head + "target_credentials:\n  - {name: P, identity: vcenter-access-admin, required: true, description: d}\n  - {name: P, identity: vcenter-access-admin, required: true, description: d}\n", "declared twice for the same identity"},
 		{"missing identity", head + "target_credentials:\n  - {name: P, required: true, description: d}\n", "P.identity: required field is missing"},
-		{"reserved identity", head + "target_credentials:\n  - {name: P, identity: packer-builder, required: true, description: d}\n", "is reserved"},
+		{"reserved identity", head + "target_credentials:\n  - {name: P, identity: provision-semaphoreui, required: true, description: d}\n", "is reserved"},
+		{"deprecated identity", head + "target_credentials:\n  - {name: P, identity: terraform-provisioner, required: true, description: d}\n", "P.identity: identity is deprecated"},
+		{"invalid identity name", head + "target_credentials:\n  - {name: P, identity: Admin, required: true, description: d}\n", "invalid identity name"},
 		{"alias as a section", head + "x: &items\n  - {name: GOVC_URL, required: true, description: d}\ntarget: *items\n", "x: unknown field"},
 		{"alias value", head + "target: *missing\n", "invalid YAML"},
 		{"merge key", head + "target:\n  - <<: {name: GOVC_URL, required: true}\n    description: d\n", "target.<<: unknown field"},

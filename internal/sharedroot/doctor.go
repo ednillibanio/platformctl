@@ -517,7 +517,11 @@ func (d *doctor) walkTargetCredentials(t string) {
 			d.problem(path, 0, "", "a file directly under credentials/target-%s/; target secrets live in an identity directory", t)
 			d.inspect(path, e)
 		case ValidateIdentity(e.Name) != nil:
-			d.problem(path, 0, "", "identity directory %q is not an active identity of the shared-root standard", e.Name)
+			why := "is not a valid identity name"
+			if identityPattern.MatchString(e.Name) {
+				why = identityRejection(e.Name)
+			}
+			d.problem(path, 0, "", "identity directory %q %s", e.Name, why)
 			d.inspect(path, e)
 		default:
 			if d.entry(path, e, TypeDir, 0o700) {

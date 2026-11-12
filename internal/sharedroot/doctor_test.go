@@ -33,7 +33,7 @@ func healthyTree(t *testing.T) string {
 	}
 	for _, o := range []CredentialOptions{
 		{Consumer: "provision-semaphoreui", Specs: []string{"SEMAPHORE_DB_PASS=-"}, Stdin: strings.NewReader(testDBPass)},
-		{Target: "vsphere-lab", Identity: "terraform-provisioner", Specs: []string{"GOVC_PASSWORD=-"}, Stdin: strings.NewReader(testGovcPass)},
+		{Target: "vsphere-lab", Identity: "vcenter-access-admin", Specs: []string{"GOVC_PASSWORD=-"}, Stdin: strings.NewReader(testGovcPass)},
 	} {
 		o.Root, o.Env, o.Out = root, "lab", &bytes.Buffer{}
 		if err := Credential(o); err != nil {
@@ -96,7 +96,7 @@ func TestDoctorHealthyTree(t *testing.T) {
 	if tr == nil || tr.Vars["GOVC_URL"] != "https://vcenter.lab.test/sdk" || tr.Hosts["provision-nexus3"]["HOST_IP"] != "192.0.2.10" {
 		t.Errorf("non-secret values missing: %+v", tr)
 	}
-	if got := tr.Credentials["terraform-provisioner"]; len(got) != 1 || got[0] != "GOVC_PASSWORD" {
+	if got := tr.Credentials["vcenter-access-admin"]; len(got) != 1 || got[0] != "GOVC_PASSWORD" {
 		t.Errorf("target credential names: %v", got)
 	}
 	if got := report.Credentials["provision-semaphoreui"]; len(got) != 1 || got[0] != "SEMAPHORE_DB_PASS" {
@@ -207,7 +207,7 @@ func TestDoctorChecks(t *testing.T) {
 			remove(t, env(r, "credentials", "provision-semaphoreui", "SEMAPHORE_DB_PASS"))
 		}, "required credential of provision-semaphoreui missing"},
 		{"required target credential missing", true, func(t *testing.T, r string) {
-			remove(t, env(r, "credentials", "target-vsphere-lab", "terraform-provisioner", "GOVC_PASSWORD"))
+			remove(t, env(r, "credentials", "target-vsphere-lab", "vcenter-access-admin", "GOVC_PASSWORD"))
 		}, "required target credential of provision-semaphoreui missing"},
 		{"declared key pair missing", true, func(t *testing.T, r string) {
 			remove(t, env(r, "credentials", "automation"))
@@ -248,8 +248,14 @@ func TestDoctorChecks(t *testing.T) {
 			write(t, env(r, "credentials", "target-vsphere-lab", "GOVC_PASSWORD"), "x", 0o600)
 		}, "a file directly under credentials/target-vsphere-lab/"},
 		{"reserved identity directory", false, func(t *testing.T, r string) {
-			mkdir(t, env(r, "credentials", "target-vsphere-lab", "semaphoreui"))
-		}, "is not an active identity"},
+			mkdir(t, env(r, "credentials", "target-vsphere-lab", "provision-semaphoreui"))
+		}, `identity directory "provision-semaphoreui" is reserved`},
+		{"deprecated identity directory", false, func(t *testing.T, r string) {
+			mkdir(t, env(r, "credentials", "target-vsphere-lab", "terraform-provisioner"))
+		}, `identity directory "terraform-provisioner" is deprecated`},
+		{"invalid identity directory name", false, func(t *testing.T, r string) {
+			mkdir(t, env(r, "credentials", "target-vsphere-lab", "Admin"))
+		}, `identity directory "Admin" is not a valid identity name`},
 		{"unknown identity directory", false, func(t *testing.T, r string) {
 			mkdir(t, env(r, "credentials", "target-vsphere-lab", "admin"))
 		}, "is not an active identity"},
