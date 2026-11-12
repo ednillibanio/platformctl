@@ -38,6 +38,8 @@ platformctl <command> [flags]
 | `help [command]` | Show command help. | No. |
 
 Run `platformctl <command> --help` for the executable's current synopsis.
+`platformctl --version` prints `platformctl version <version>`: the release
+tag, or `dev` for a build from source.
 
 ## Configuration home selection
 

@@ -108,6 +108,22 @@ docker run --rm -v "$PWD":/src:Z -w /src -e HOME=/tmp \
   ./scripts/e2e-shared-root.sh
 ```
 
+## Release build
+
+`.github/workflows/release.yml` runs the tests and
+`scripts/release-build.sh`, which writes `platformctl-<os>-<arch>` for
+`linux`/`darwin` × `amd64`/`arm64` (`CGO_ENABLED=0`, version embedded with
+`-ldflags`) and `SHA256SUMS`. On a pull request or a manual run it only
+uploads them as a workflow artifact; a `vX.Y.Z` tag also publishes a GitHub
+release. Tags are created on `main` after the `lab` → `main` promotion, with
+the operator's confirmation. Local run:
+
+```bash
+docker run --rm -v "$PWD":/src:Z -w /src -e HOME=/tmp \
+  -e GOPATH=/src/.cache/gopath docker.io/library/golang:1.26.5 \
+  ./scripts/release-build.sh dev-"$(git rev-parse --short=12 HEAD)" .cache/dist
+```
+
 ## Manual CLI smoke test
 
 Build the binary first, then validate the project-owned example without

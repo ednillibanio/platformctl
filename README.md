@@ -29,7 +29,7 @@ Ansible, Packer, Vagrant, `govc`, SemaphoreUI, or any service provisioner.
 - Primary/default branch: `main`
 - Integration and pre-promotion branch: `lab`
 - Configuration API: `platformctl.io/v1alpha1`
-- Published releases: none; build from source
+- Published releases: none yet; `vX.Y.Z` tags of `main` publish Linux and macOS binaries ([Installation](docs/installation.md)); until then build from source
 - Supported development hosts: Linux, macOS, and Windows (the shared-root
   commands: Linux and macOS)
 - Render formats: YAML (default) and JSON
@@ -129,7 +129,7 @@ Start with the [documentation index](docs/index.md), or go directly to:
 
 | Need | Document |
 | --- | --- |
-| Install or update from source | [Installation](docs/installation.md) |
+| Install a release or build from source | [Installation](docs/installation.md) |
 | Create a complete environment | [Usage guide](docs/usage.md) |
 | Look up commands and flags | [CLI reference](docs/cli-reference.md) |
 | Look up YAML fields and merge behavior | [Configuration reference](docs/configuration.md) |
