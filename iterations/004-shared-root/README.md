@@ -79,6 +79,7 @@ Fora de escopo:
 | 05 | `done` | `steps/05-doctor.md` |
 | 06 | `done` | `steps/06-docs-e2e.md` |
 | 07 | `done` | `steps/07-release.md` |
+| 08 | `done` | `steps/08-guias-operador.md` |
 
 ## Critérios de Fechamento
 
