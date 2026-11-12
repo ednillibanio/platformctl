@@ -112,3 +112,40 @@ func publicLine(pub ed25519.PublicKey, env string) ([]byte, error) {
 	line := bytes.TrimRight(ssh.MarshalAuthorizedKey(sshPub), "\n")
 	return append(append(line, ' '), automationComment(env)+"\n"...), nil
 }
+
+// checkAutomationPair checks that private is an OpenSSH ed25519 private key
+// without a passphrase whose public key is the one in public. It returns the
+// SHA256 fingerprint of public (when it parses) and a problem message, or "".
+// Neither ever holds key material.
+func checkAutomationPair(private, public []byte) (string, string) {
+	pub, _, _, rest, err := ssh.ParseAuthorizedKey(public)
+	if err != nil || len(bytes.TrimSpace(rest)) != 0 {
+		return "", AutomationPublicKey + " is not one OpenSSH public key line"
+	}
+	fingerprint := ssh.FingerprintSHA256(pub)
+	key, err := ssh.ParseRawPrivateKey(private)
+	if err != nil {
+		var missing *ssh.PassphraseMissingError
+		if errors.As(err, &missing) {
+			return fingerprint, AutomationPrivateKey + " has a passphrase; the automation key must not have one"
+		}
+		return fingerprint, AutomationPrivateKey + " is not a valid OpenSSH private key"
+	}
+	var derived ed25519.PublicKey
+	switch k := key.(type) {
+	case ed25519.PrivateKey:
+		derived = k.Public().(ed25519.PublicKey)
+	case *ed25519.PrivateKey:
+		derived = k.Public().(ed25519.PublicKey)
+	default:
+		return fingerprint, AutomationPrivateKey + " is not an ed25519 key"
+	}
+	sshDerived, err := ssh.NewPublicKey(derived)
+	if err != nil {
+		return fingerprint, AutomationPrivateKey + " has an invalid ed25519 public part"
+	}
+	if !bytes.Equal(sshDerived.Marshal(), pub.Marshal()) {
+		return fingerprint, AutomationPrivateKey + " does not match " + AutomationPublicKey
+	}
+	return fingerprint, ""
+}

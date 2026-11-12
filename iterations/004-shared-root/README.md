@@ -60,7 +60,7 @@ Fora de escopo:
 | 02 | `done` | `steps/02-parsers.md` |
 | 03 | `done` | `steps/03-bootstrap-config.md` |
 | 04 | `done` | `steps/04-credential.md` |
-| 05 | `todo` | `steps/05-doctor.md` |
+| 05 | `done` | `steps/05-doctor.md` |
 | 06 | `todo` | `steps/06-docs-e2e.md` |
 | 07 | `todo` | `steps/07-release.md` |
 

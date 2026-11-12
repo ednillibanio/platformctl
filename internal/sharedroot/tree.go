@@ -12,3 +12,24 @@ type File struct {
 	Content []byte
 	Mode    os.FileMode
 }
+
+// EntryType is the kind of an entry of the tree.
+type EntryType int
+
+// Entry types; a symbolic link is never followed.
+const (
+	TypeOther EntryType = iota
+	TypeDir
+	TypeFile
+	TypeSymlink
+)
+
+// EntryInfo describes one entry of the tree.
+type EntryInfo struct {
+	Name    string
+	Type    EntryType
+	Perm    os.FileMode // permission bits only
+	Special bool        // setuid, setgid or sticky bit set
+	UID     int
+	Size    int64
+}

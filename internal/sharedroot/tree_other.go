@@ -23,3 +23,9 @@ func (t *Tree) PublishDir([]string, string, []File) error { return ErrNotSupport
 func (t *Tree) Entry([]string, string) (bool, bool, error) { return false, false, ErrNotSupported }
 
 func (t *Tree) ReadFile([]string, string) ([]byte, error) { return nil, ErrNotSupported }
+
+func (t *Tree) Lstat([]string, string) (EntryInfo, error) { return EntryInfo{}, ErrNotSupported }
+
+func (t *Tree) List([]string) ([]EntryInfo, error) { return nil, ErrNotSupported }
+
+func supported() bool { return false }
