@@ -77,7 +77,36 @@ Run one package or test while iterating:
 
 `go test ./...` covers the CLI workflow, strict loading, scaffold safety,
 platform-home resolution, immutable merge, validation, render/redaction,
-schemas, and the committed example.
+schemas, the committed example, and the shared-root commands
+(`internal/sharedroot`: names, atomic no-clobber writes, symlink refusal,
+parsers, golden skeletons, concurrency, and one test per `doctor` check).
+Several shared-root tests check file ownership and modes, so run the suite
+both as a regular user and as root before a pull request.
+
+## Shared-root end-to-end check
+
+`scripts/e2e-shared-root.sh` builds the binary (or takes `--bin <path>`) and
+runs `bootstrap-config`, `credential` and `doctor` against a scratch root,
+never `~/.config/assembleiarr`. It checks that a second `bootstrap-config`
+changes nothing, that an invalid declaration writes nothing, that a
+divergent file is reported and not overwritten, that `credential` never
+overwrites, that `doctor` accepts the filled tree, fails on `$(...)`, an
+unquoted `~`, a duplicate key, a missing declared key and a file directly
+under `credentials/target-<t>/`, and that its output holds no secret. It
+prints one `PASS`/`FAIL` line per check and exits `1` on any failure. It
+needs Bash and `python3` or `jq` (to parse the `doctor` JSON); the pinned
+`golang` image has `python3`.
+
+It uses only the neutral declaration
+`scripts/testdata/e2e/shared-root.yaml` (consumer `provision-example`).
+Whether a consumer's own loader accepts a tree that `platformctl` created is
+tested in that consumer's repository, not here.
+
+```bash
+docker run --rm -v "$PWD":/src:Z -w /src -e HOME=/tmp \
+  -e GOPATH=/src/.cache/gopath docker.io/library/golang:1.26.5 \
+  ./scripts/e2e-shared-root.sh
+```
 
 ## Manual CLI smoke test
 

@@ -7,6 +7,11 @@ configuration home and is not replaced by source updates. `lab` is an
 integration branch for pre-promotion validation, not the default installation
 channel.
 
+The shared-root commands (`bootstrap-config`, `credential`, `doctor`) need a
+Linux or macOS controller; on Windows they exit with "not supported". Every
+controller that runs a `provision-*` repository needs the binary on its
+`PATH`.
+
 ## Toolchain policy
 
 [`go.mod`](../go.mod) requires Go 1.24 or newer. The bootstrap:
@@ -158,10 +163,33 @@ Remove-Item Env:PLATFORMCTL_HOME
 Expected validation output is `Environment "lab" is valid`. The JSON render
 must contain `kind: RenderedEnvironment` and two hosts.
 
+On Linux or macOS, check the shared-root commands against a scratch root, so
+the real `~/.config/assembleiarr` is not touched:
+
+```bash
+scratch="$(mktemp -d)"
+platformctl bootstrap-config --env lab --target vsphere-lab \
+  --config-dir "${scratch}" --automation-key
+platformctl doctor --env lab --config-dir "${scratch}"
+rm -rf "${scratch}"
+```
+
+Both commands exit `0`. Without a declaration, both print a "no declaration
+given" warning; `doctor` ends with `<scratch>/lab: 0 problem(s), 1
+warning(s)` after the automation key fingerprint.
+
+## Prepare the shared root
+
+On a controller, create and check the real shared root with the workflow in
+[Usage: Shared root](usage.md#shared-root-of-the-provision--repositories). It
+writes under `~/.config/assembleiarr/<env>/` unless `ASSEMBLEIARR_CONFIG_DIR`
+or `--config-dir` selects another root.
+
 ## Initialize operator configuration
 
-After verification, remove any temporary example override and initialize the
-normal operating-system location:
+This section is for the paused YAML model. After verification, remove any
+temporary example override and initialize the normal operating-system
+location:
 
 ```bash
 unset PLATFORMCTL_HOME
