@@ -1,6 +1,6 @@
 # Iteração: Shared root dos `provision-*` (bootstrap-config, credential, doctor)
 
-Status: `doing`
+Status: `done`
 
 Issue: #34 (iteração); demanda: #33
 
@@ -104,4 +104,25 @@ Fora de escopo:
 
 ## Resultado
 
-Registrar o resumo final quando a iteração for fechada.
+Concluída em 2026-11-16, publicada como `v0.1.0`
+(<https://github.com/ednillibanio/platformctl/releases/tag/v0.1.0>, tag no
+`main` `316de3f`, promoção #45):
+
+- `platformctl bootstrap-config`, `credential` e `doctor` preparam e
+  conferem `${ASSEMBLEIARR_CONFIG_DIR:-~/.config/assembleiarr}/<env>/`
+  conforme o standard do catálogo (ADR-0005, ADR-0007); nunca sobrescrevem
+  nem apagam arquivos (#35–#40);
+- produto genérico, sem acoplamento a nenhum `provision-*` no código, nos
+  testes ou nos docs; fixtures neutros `provision-example` (#41, #42);
+- release com binários Linux/macOS (amd64, arm64) e `SHA256SUMS`, publicada
+  por tag `v*` no `main` (#43); conferido o download da release, o
+  `sha256sum -c` e `--version` = `v0.1.0`;
+- guias do operador e do mantenedor de `provision-*` (#44).
+
+Pendências, fora desta iteração:
+
+- o e2e sai com `2` em vez de `1` quando o binário falha em tudo (etapa 06);
+- catálogo: platform-catalog#86 (seção "File format" ainda cita o loader de
+  um consumidor);
+- instalação nos controllers: al-rr/platform-modules#337; adoção pelos
+  consumidores, começando por al-rr/provision-semaphoreui#86.
