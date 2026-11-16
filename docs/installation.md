@@ -1,11 +1,55 @@
 # Installation
 
-No versioned `platformctl` release is published yet. During the `v1alpha1`
-foundation phase, build the principal `main` branch from source. This guide
-installs only the CLI binary; operator configuration remains in a separate
-configuration home and is not replaced by source updates. `lab` is an
-integration branch for pre-promotion validation, not the default installation
-channel.
+This guide installs only the CLI binary; operator configuration remains in a
+separate configuration home and is not replaced by an update. `lab` is an
+integration branch for pre-promotion validation, not an installation channel.
+
+The shared-root commands (`bootstrap-config`, `credential`, `doctor`) need a
+Linux or macOS controller; on Windows they exit with "not supported". Every
+controller that runs a `provision-*` repository needs the binary on its
+`PATH`.
+
+## Install a release (Linux, macOS)
+
+Releases are published from `vX.Y.Z` tags of `main` by
+[`.github/workflows/release.yml`](../.github/workflows/release.yml). Each
+release has one binary per platform, `platformctl-<os>-<arch>` for `linux`
+and `darwin` on `amd64` and `arm64` (built without cgo; static on Linux), and
+a `SHA256SUMS` file. Until the first tag exists, build from source (next
+sections).
+
+Prerequisites: `curl`, and `sha256sum` (Linux) or `shasum` (macOS).
+
+```bash
+version=v0.1.0   # the release to install
+os=$(uname -s | tr '[:upper:]' '[:lower:]')        # linux or darwin
+arch=$(uname -m); case $arch in x86_64) arch=amd64 ;; aarch64) arch=arm64 ;; esac
+base=https://github.com/ednillibanio/platformctl/releases/download/${version}
+
+file=platformctl-${os}-${arch}
+
+# Each step runs only if the previous one succeeded: a failed download or a
+# missing checksum line stops before anything is installed.
+cd "$(mktemp -d)" &&
+  curl -fsSLO "${base}/${file}" &&
+  curl -fsSLO "${base}/SHA256SUMS" &&
+  grep -x "[0-9a-f]\{64\}  ${file}" SHA256SUMS > check &&
+  if command -v sha256sum >/dev/null; then sha256sum -c check; else shasum -a 256 -c check; fi &&
+  install -d "${HOME}/.local/bin" &&
+  install -m 0755 "${file}" "${HOME}/.local/bin/platformctl" &&
+  platformctl --version   # platformctl version v0.1.0
+```
+
+The checksum step prints `platformctl-<os>-<arch>: OK`; anything else
+means the file was not verified and nothing was installed.
+
+`${HOME}/.local/bin` must be on `PATH`. To update, repeat with the new
+version; to remove, delete the binary. The configuration roots are not
+touched. A build from source prints `platformctl version dev`.
+
+To build the same release files locally (for example to test the
+workflow), run `scripts/release-build.sh <version> <out-dir>`, where
+`<version>` is `vX.Y.Z[-pre]` or `dev-<commit>`.
 
 ## Toolchain policy
 
@@ -158,10 +202,33 @@ Remove-Item Env:PLATFORMCTL_HOME
 Expected validation output is `Environment "lab" is valid`. The JSON render
 must contain `kind: RenderedEnvironment` and two hosts.
 
+On Linux or macOS, check the shared-root commands against a scratch root, so
+the real `~/.config/assembleiarr` is not touched:
+
+```bash
+scratch="$(mktemp -d)"
+platformctl bootstrap-config --env lab --target vsphere-lab \
+  --config-dir "${scratch}" --automation-key
+platformctl doctor --env lab --config-dir "${scratch}"
+rm -rf "${scratch}"
+```
+
+Both commands exit `0`. Without a declaration, both print a "no declaration
+given" warning; `doctor` ends with `<scratch>/lab: 0 problem(s), 1
+warning(s)` after the automation key fingerprint.
+
+## Prepare the shared root
+
+On a controller, create and check the real shared root with the workflow in
+[Usage: Shared root](usage.md#shared-root-of-the-provision--repositories). It
+writes under `~/.config/assembleiarr/<env>/` unless `ASSEMBLEIARR_CONFIG_DIR`
+or `--config-dir` selects another root.
+
 ## Initialize operator configuration
 
-After verification, remove any temporary example override and initialize the
-normal operating-system location:
+This section is for the paused YAML model. After verification, remove any
+temporary example override and initialize the normal operating-system
+location:
 
 ```bash
 unset PLATFORMCTL_HOME

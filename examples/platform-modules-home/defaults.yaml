@@ -1,0 +1,14 @@
+# Mirrors ~/.config/platform-modules/base/ (ADR-0002 in platform-catalog).
+# Secret-free: credentials are references resolved by the evaluating shell.
+apiVersion: platformctl.io/v1alpha1
+kind: Defaults
+metadata:
+  name: defaults
+spec:
+  values:
+    git:
+      user_name: Platform Operator
+      user_email: operator@example.invalid
+  credentials:
+    github-token:
+      env: GITHUB_TOKEN

@@ -1,27 +1,52 @@
 # platformctl
 
-`platformctl` is a cross-platform CLI for authoring, validating, merging, and
-rendering private infrastructure configuration by environment. It gives
-operators one layered source of truth that downstream provisioning and
-automation repositories can consume as deterministic YAML or JSON.
+`platformctl` is the operator-side platform tooling of the platform
+repositories (platform-catalog type "Platform tooling"). It creates and
+checks, on every controller, the shared configuration root that the
+`provision-*` repositories read, `~/.config/assembleiarr/<env>/`, as defined
+by the platform-catalog
+[provision shared root standard](https://github.com/ednillibanio/platform-catalog/blob/main/docs/standards/provision-shared-root-standard.md):
 
-The current `v1alpha1` foundation is configuration-only. It does **not** invoke
-Terraform, Ansible, Packer, Vagrant, `govc`, SemaphoreUI, or any service
-provisioner.
+| Command | Purpose |
+| --- | --- |
+| `platformctl bootstrap-config` | Create the skeleton of one environment from the repositories' `shared-root.yaml` declarations, and the automation key pair. |
+| `platformctl credential` | Create credential files (random, literal, or from standard input). |
+| `platformctl doctor` | Check the tree, read-only, in text or JSON, without printing a secret. |
+
+None of them overwrites or deletes an existing file. They run on Linux and
+macOS.
+
+It also holds the YAML model (`init`, `environment init`, `validate`,
+`render`, `export`) for authoring, validating, merging, and rendering layered
+configuration by environment. That model is **paused**: the commands keep
+working, but no consumer adopts it now.
+
+`platformctl` is configuration-only. It does **not** invoke Terraform,
+Ansible, Packer, Vagrant, `govc`, SemaphoreUI, or any service provisioner.
 
 ## Status
 
 - Primary/default branch: `main`
 - Integration and pre-promotion branch: `lab`
 - Configuration API: `platformctl.io/v1alpha1`
-- Published releases: none; build from source
-- Supported development hosts: Linux, macOS, and Windows
+- Published releases: none yet; `vX.Y.Z` tags of `main` publish Linux and macOS binaries ([Installation](docs/installation.md)); until then build from source
+- Supported development hosts: Linux, macOS, and Windows (the shared-root
+  commands: Linux and macOS)
 - Render formats: YAML (default) and JSON
+- Shell projection: `export --format env` (for example `PM_*` for
+  `platform-modules`)
 
 See [implementation progress](docs/progress.md) for completed capabilities,
 validation coverage, and deferred work.
 
 ## How it fits
+
+```text
+shared-root.yaml ──> platformctl bootstrap-config ──> ~/.config/assembleiarr/<env>/
+ per provision-*      credential, doctor               read by each provision-* loader
+```
+
+The paused YAML model:
 
 ```text
 operator configuration                     downstream execution
@@ -35,7 +60,7 @@ PLATFORMCTL_HOME ──> platformctl render ──> provision-* / automation ada
 The adapters that translate rendered data into repository-specific manifests,
 inventories, or secret files are separate integration work. See
 [Ecosystem and integrations](docs/ecosystem.md) for the current boundaries and
-the relationships with `infra-gitops`, `provision-platform-environments`,
+the relationships with `platform-modules`, `provision-platform-environments`,
 `provision-semaphoreui`, and `provision-nexus3`.
 
 ## Quick verification from source
@@ -65,7 +90,22 @@ two hosts and preserves credential references without reading their values.
 
 ## First operator workflow
 
-After installing `platformctl`, initialize the operating system's default
+On a controller, create and check the shared root of one environment:
+
+```bash
+platformctl bootstrap-config --env lab --target vsphere-lab \
+  --declaration ~/src/provision-example/shared-root.yaml --automation-key
+# set the values in targets/vsphere-lab/vars.sh and hosts/<consumer>.sh
+platformctl credential --env lab --consumer provision-example \
+  EXAMPLE_DB_USER=example EXAMPLE_DB_PASS
+platformctl doctor --env lab \
+  --declaration ~/src/provision-example/shared-root.yaml
+```
+
+Follow [Usage: Shared root](docs/usage.md#shared-root-of-the-provision--repositories)
+for the whole workflow, including more controllers of one environment.
+
+For the paused YAML model, initialize the operating system's default
 configuration location and one environment:
 
 ```bash
@@ -89,8 +129,11 @@ Start with the [documentation index](docs/index.md), or go directly to:
 
 | Need | Document |
 | --- | --- |
-| Install or update from source | [Installation](docs/installation.md) |
-| Create a complete environment | [Usage guide](docs/usage.md) |
+| Install a release or build from source | [Installation](docs/installation.md) |
+| Understand the `provision-*` shared root | [Shared root concepts](docs/shared-root-concepts.md) |
+| Prepare and check the shared root on a controller | [Usage guide](docs/usage.md#shared-root-of-the-provision--repositories) |
+| Write a repository's `shared-root.yaml` | [Writing a key declaration](docs/shared-root-declaration.md) |
+| Create a complete environment (paused YAML model) | [Usage guide](docs/usage.md#yaml-model-paused) |
 | Look up commands and flags | [CLI reference](docs/cli-reference.md) |
 | Look up YAML fields and merge behavior | [Configuration reference](docs/configuration.md) |
 | Understand internals and boundaries | [Architecture](docs/architecture.md) |
@@ -102,9 +145,11 @@ Start with the [documentation index](docs/index.md), or go directly to:
 
 ## Security boundary
 
-Real operator configuration lives outside Git. A credential may contain an
-environment-variable reference, a file reference, or an inline value. Inline
-values are redacted by default; `render --reveal-secrets` deliberately exposes
+Real operator configuration lives outside Git. The shared-root commands
+create credentials with mode `0600`, never print a secret, and never follow
+a symbolic link inside the tree. In the YAML model, a credential may contain
+an environment-variable reference, a file reference, or an inline value.
+Inline values are redacted by default; `render --reveal-secrets` deliberately exposes
 them. `platformctl` never resolves `env` or `file` references itself.
 
 Read [Configuration reference: Credentials](docs/configuration.md#credentials)

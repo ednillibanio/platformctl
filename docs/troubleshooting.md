@@ -2,8 +2,10 @@
 
 Start with the exact failing command and preserve its standard error. Parsing
 errors stop before semantic validation; semantic validation collects and sorts
-all problems it can find. `platformctl` currently exits `1` for every error
-category, so the message is the useful diagnostic.
+all problems it can find. The YAML model commands exit `1` for every error
+category, so the message is the useful diagnostic. The shared-root commands
+exit `1` for problems and `2` for usage errors; see
+[Shared root](#shared-root).
 
 ## Confirm the active binary and configuration home
 
@@ -176,6 +178,75 @@ defaults -> environment -> profile chain -> services in declared order -> host
 Maps merge recursively. Scalars, lists, and `null` replace the earlier value.
 Credentials replace the complete reference object per credential name. See the
 [worked merge example](configuration.md#worked-merge-example).
+
+## Shared root
+
+Run `platformctl doctor --env <env>` first: it lists every problem with its
+file and line. No command fixes a file; edit or remove it by hand. The rules
+come from the [provision shared root standard](https://github.com/ednillibanio/platform-catalog/blob/main/docs/standards/provision-shared-root-standard.md).
+
+### `unknown environment "<env>": not an entry of platform-catalog catalog/environments/`
+
+`--env` accepts only the catalog environments (`lab`, `prod`). A new
+environment is added to the catalog first, then to
+`internal/sharedroot/names.go`.
+
+### `identity "<i>" is reserved and cannot be used yet` or `is deprecated`
+
+Only an active identity of the standard may be declared, used with
+`credential --identity`, or have a directory under
+`credentials/target-<t>/`. Today that is `vcenter-access-admin`. A reserved
+identity becomes usable when the catalog activates it; `terraform-provisioner` is deprecated (ADR-0007). `doctor`
+reports an existing directory of either kind as a problem.
+
+### `a file directly under credentials/target-<t>/`
+
+Target secrets belong in `credentials/target-<t>/<identity>/`. A consumer
+that still reads its target account directly from `credentials/target-<t>/`
+needs those files until it follows the standard (its adaptation issue); the
+problem stays until then.
+
+### `required key is still a placeholder`
+
+The line is still `# KEY=`. Write the value after the `=` and remove the
+leading `# `.
+
+### `only KEY=value lines with a literal value are allowed`
+
+The shared files take only literal assignments: no `$(...)`, backquotes,
+variables, `declare`, functions, or an unquoted `~`. Write the literal value,
+for example the absolute path instead of `~/data`.
+
+### `the process umask removes owner permissions`
+
+The commands create directories `0700` and files `0600`/`0644` and need a
+umask that keeps the owner bits. Run them with `umask 077` or `umask 022`.
+
+### `refusing to follow a symbolic link in the shared root`
+
+No path inside the root may be a symbolic link, and the root itself
+(`--config-dir`, `ASSEMBLEIARR_CONFIG_DIR` or `~/.config/assembleiarr`)
+must not be one either. Replace the link with the real directory or file, or
+point the root at the real directory. Links in the parent directories of the
+root are followed.
+
+### `incomplete automation key pair`
+
+`credentials/automation/` exists without both `ssh_ed25519` and
+`ssh_ed25519.pub`. `bootstrap-config` creates nothing in it. Restore the pair
+from another controller of the environment, or remove the incomplete
+directory and import the pair with `--automation-key-import -`.
+
+### `--automation-key-import -` rejects the key
+
+Standard input must hold exactly one unencrypted ed25519 OpenSSH private key
+(`BEGIN OPENSSH PRIVATE KEY`). A key with a passphrase, another key type, or
+extra text is refused. Pipe the file itself, for example
+`ssh first-controller cat .config/assembleiarr/lab/credentials/automation/ssh_ed25519`.
+
+### `shared-root commands are not supported on this operating system`
+
+The shared-root commands run on Linux and macOS only.
 
 ## Development bootstrap
 

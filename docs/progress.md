@@ -18,6 +18,9 @@ release guarantee; the public configuration API remains `v1alpha1`.
   services, and host overrides.
 - Immutable recursive map merge and shallow credential replacement.
 - Deterministic YAML and JSON rendering.
+- `export --format env` shell projection (ADR-0002): service or host
+  selection, prefixed names, all-or-nothing credential resolution by the
+  evaluating shell.
 - Credential forms `env`, `file`, and inline `value`; inline values are
   redacted by default and revealed only with `render --reveal-secrets`.
 - Embedded JSON Schemas for configuration and rendered environments.
@@ -26,6 +29,14 @@ release guarantee; the public configuration API remains `v1alpha1`.
   provisioning/test script.
 - Live host configuration mount guidance for external Vagrant controllers.
 - Operator, integrator, and maintainer documentation under `docs/`.
+- Shared root of the `provision-*` repositories (iteration 004, catalog
+  provision shared root standard): `bootstrap-config` (skeleton from
+  `shared-root.yaml` declarations, automation key pair generated or
+  imported), `credential` (random, literal, or standard-input values;
+  replaces `gen-credential`), and read-only `doctor` (text and JSON, no
+  secrets), on Linux and macOS; identities per ADR-0007.
+- `scripts/e2e-shared-root.sh`: end-to-end check against a scratch root
+  with a neutral declaration.
 
 ## Automated repository validation
 
@@ -51,7 +62,10 @@ the ordinary local unit suite:
 - Vagrant validation and VM creation with each available provider;
 - inspection of provider-specific synced-folder behavior;
 - live `PLATFORMCTL_HOME` mounts in external controller repositories;
-- downstream consumer adapters and provisioning, which are not implemented.
+- downstream consumer adapters and provisioning, which are not implemented;
+- `scripts/e2e-shared-root.sh`, which is not run by CI yet;
+- each consumer's loader against a `platformctl` tree, tested in that
+  consumer's repository.
 
 See [Lab environments](lab-environments.md) for supported lab mechanisms and
 [Vagrant controller integration](vagrant-controller-integration.md) for the
@@ -59,10 +73,16 @@ separate live-mount procedure.
 
 ## Deferred product work
 
+- A tagged release with checksums (iteration 004 step 07) and adoption of
+  the shared-root commands by each `provision-*` repository (their
+  adaptation issues).
 - Consumer adapters for `provision-platform-environments`,
   `provision-semaphoreui`, `provision-nexus3`, and other `provision-*`
   repositories.
-- Runtime orchestration of `infra-gitops` modules or provisioning repositories.
+- Runtime orchestration of `platform-modules` or provisioning repositories.
+- Adoption of the `export` projection by `platform-modules`: not planned;
+  the [platform configuration alignment program](https://github.com/ednillibanio/platform-catalog/blob/main/docs/architecture/platform-config-alignment.md)
+  was paused on 2026-09-23.
 - Real provisioning through Ansible, Terraform, Packer, `govc`, or service
   CLIs.
 - Catalog import, Vault/secrets-manager integration, daemon/API, and graphical

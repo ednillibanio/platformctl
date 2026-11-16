@@ -1,0 +1,16 @@
+# Mirrors ~/.config/platform-modules/modules/packer/overlays/lab/.
+apiVersion: platformctl.io/v1alpha1
+kind: Service
+metadata:
+  name: packer
+spec:
+  values:
+    common:
+      vm_version: 19
+      remove_cdrom: true
+      template_conversion: false
+      data_source: http
+      http_port_min: 8000
+      http_port_max: 8099
+    packer:
+      enable_log: false
