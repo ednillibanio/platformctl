@@ -217,6 +217,17 @@ The shared files take only literal assignments: no `$(...)`, backquotes,
 variables, `declare`, functions, or an unquoted `~`. Write the literal value,
 for example the absolute path instead of `~/data`.
 
+### `a comment goes on its own line, not after the value`
+
+A line has a comment after its value, such as `GOVC_URL=https://vc/sdk # lab`.
+The standard allows only the assignment on that line. Move the comment to
+the line above:
+
+```bash
+# lab
+GOVC_URL=https://vc/sdk
+```
+
 ### `the process umask removes owner permissions`
 
 The commands create directories `0700` and files `0600`/`0644` and need a
