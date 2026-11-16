@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-GO_VERSION="1.26.5"
+GO_VERSION="1.26.6"
 DEV_ROOT="${PLATFORMCTL_DEV_ROOT:-${PROJECT_ROOT}}"
 TOOLS_DIR="${DEV_ROOT}/.tools"
 LOCAL_GO="${TOOLS_DIR}/go/bin/go"
@@ -14,7 +14,7 @@ system_go_is_compatible() {
   version="$(go env GOVERSION 2>/dev/null || true)"
   [[ "${version}" =~ ^go1\.([0-9]+) ]] || return 1
   minor="${BASH_REMATCH[1]}"
-  ((minor >= 24))
+  ((minor >= 25))
 }
 
 download_go() {
@@ -32,19 +32,19 @@ download_go() {
   case "${os_name}:$(uname -m)" in
     linux:x86_64|linux:amd64)
       arch="amd64"
-      checksum="5c2c3b16caefa1d968a94c1daca04a7ca301a496d9b086e17ad77bb81393f053"
+      checksum="708effb774be8237570d0add163225abbdfaf4fca28b2611df167beba4feef89"
       ;;
     linux:aarch64|linux:arm64)
       arch="arm64"
-      checksum="fe4789e92b1f33358680864bbe8704289e7bb5fc207d80623c308935bd696d49"
+      checksum="d0507e9e9d7fe012aae570108cbd76c15de879e17130ab8cb90d4d7445cb1f2e"
       ;;
     darwin:x86_64|darwin:amd64)
       arch="amd64"
-      checksum="6231d8d3b8f5552ec6cbf6d685bdd5482e1e703214b120e89b3bf0d7bf1ef725"
+      checksum="08b65a63f244115121ced6c3b55ad38d801a7442acad5c949a17aad84ae6d684"
       ;;
     darwin:arm64)
       arch="arm64"
-      checksum="efb87ff28af9a188d0536ef5d42e63dd52ba8263cd7344a993cc48dd11dedb6a"
+      checksum="2dc95ce4675829f2df0e86b28bcef3283635902062a5f0580ca659bf570f3204"
       ;;
     *)
       echo "[ERROR] Unsupported ${os_name} architecture: $(uname -m)" >&2

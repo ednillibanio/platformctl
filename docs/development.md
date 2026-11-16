@@ -21,9 +21,9 @@ to build and install the current CLI should use [Installation](installation.md).
 
 ## Toolchain
 
-[`go.mod`](../go.mod) declares Go 1.24. The bootstrap accepts an installed Go
-toolchain with minor version 1.24 or newer. If none is available, it downloads
-the pinned Go 1.26.5 archive for the supported operating system and architecture
+[`go.mod`](../go.mod) declares Go 1.25. The bootstrap accepts an installed Go
+toolchain with minor version 1.25 or newer. If none is available, it downloads
+the pinned Go 1.26.6 archive for the supported operating system and architecture
 into the ignored `.tools/` directory and verifies the repository-pinned SHA-256
 checksum.
 
@@ -104,7 +104,7 @@ tested in that consumer's repository, not here.
 
 ```bash
 docker run --rm -v "$PWD":/src:Z -w /src -e HOME=/tmp \
-  -e GOPATH=/src/.cache/gopath docker.io/library/golang:1.26.5 \
+  -e GOPATH=/src/.cache/gopath docker.io/library/golang:1.26.6 \
   ./scripts/e2e-shared-root.sh
 ```
 
@@ -120,7 +120,7 @@ the operator's confirmation. Local run:
 
 ```bash
 docker run --rm -v "$PWD":/src:Z -w /src -e HOME=/tmp \
-  -e GOPATH=/src/.cache/gopath docker.io/library/golang:1.26.5 \
+  -e GOPATH=/src/.cache/gopath docker.io/library/golang:1.26.6 \
   ./scripts/release-build.sh dev-"$(git rev-parse --short=12 HEAD)" .cache/dist
 ```
 

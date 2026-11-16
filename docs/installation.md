@@ -53,10 +53,10 @@ workflow), run `scripts/release-build.sh <version> <out-dir>`, where
 
 ## Toolchain policy
 
-[`go.mod`](../go.mod) requires Go 1.24 or newer. The bootstrap:
+[`go.mod`](../go.mod) requires Go 1.25 or newer. The bootstrap:
 
 1. uses an existing compatible Go installation when available;
-2. otherwise downloads pinned Go 1.26.5 into the ignored `.tools/` directory;
+2. otherwise downloads pinned Go 1.26.6 into the ignored `.tools/` directory;
 3. verifies the official archive with a repository-pinned SHA-256 checksum;
 4. downloads Go module dependencies;
 5. keeps build/module caches under ignored `.cache/` paths through the wrapper.
