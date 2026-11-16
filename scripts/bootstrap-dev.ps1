@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
-$GoVersion = "1.26.5"
-$GoChecksum = "97e6b2a833b6d89f9ff17d25419ac0a7e3b482a044e9ab18cdef834bd834fd38"
+$GoVersion = "1.26.6"
+$GoChecksum = "5b6c5b556525810463b5c897b50dc7a82d6a3dc0bfaf55d990a7e9f31d6b2318"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $DevRoot = if ($env:PLATFORMCTL_DEV_ROOT) { $env:PLATFORMCTL_DEV_ROOT } else { $ProjectRoot }
 $ToolsDir = Join-Path $DevRoot ".tools"
@@ -11,7 +11,7 @@ $SystemGoCompatible = $false
 $SystemGo = Get-Command go -ErrorAction SilentlyContinue
 if ($SystemGo) {
     $Version = (& $SystemGo.Source env GOVERSION).Trim()
-    if ($Version -match '^go1\.(\d+)' -and [int]$Matches[1] -ge 24) {
+    if ($Version -match '^go1\.(\d+)' -and [int]$Matches[1] -ge 25) {
         $SystemGoCompatible = $true
     }
 }
