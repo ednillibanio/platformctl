@@ -22,7 +22,7 @@ func TestShellFileFixtures(t *testing.T) {
 			t.Errorf("accepted line refused: %q: %v", line, err)
 		}
 	}
-	for _, name := range []string{"refused.txt", "refused-tilde.txt"} {
+	for _, name := range []string{"refused.txt", "refused-tilde.txt", "refused-comment.txt"} {
 		for _, line := range fixtureLines(t, name) {
 			_, err := ParseShellFile("vars.sh", VarsFile, []byte(line+"\n"))
 			if err == nil {
@@ -47,7 +47,7 @@ func TestShellFileValuesAndPlaceholders(t *testing.T) {
 		"# GOVC_URL=",
 		"GOVC_USERNAME='terraform provisioner'",
 		`export TARGET_FOLDER="/dc/vm/services"`,
-		"DISPOSABLE_POOL=pool-1 # note",
+		"DISPOSABLE_POOL=pool-1",
 		"",
 		"# TARGET_DATASTORE=example",
 	}, "\n")
@@ -124,5 +124,18 @@ func TestShellFileReportsEveryProblemWithLocation(t *testing.T) {
 	}
 	if strings.Contains(err.Error(), "secret-value") {
 		t.Fatalf("error prints a value: %v", err)
+	}
+}
+
+func TestShellFileTrailingCommentMessage(t *testing.T) {
+	_, err := ParseShellFile("vars.sh", VarsFile, []byte("GOVC_URL=https://vc.example.invalid/sdk # lab vCenter\n"))
+	if err == nil {
+		t.Fatal("trailing comment accepted")
+	}
+	if !strings.Contains(err.Error(), "a comment goes on its own line") {
+		t.Errorf("want the trailing-comment message, got %v", err)
+	}
+	if strings.Contains(err.Error(), "vc.example.invalid") {
+		t.Errorf("error prints the value: %v", err)
 	}
 }

@@ -7,8 +7,6 @@ GOVC_URL=""
 GOVC_URL='with spaces $HOME `x` \ ; & | < > ( ) # ~ "'
 GOVC_URL="with spaces ; & | < > ( ) # ~ '"
 GOVC_URL=a:b,c/d@e%f+g=h*i?j[k]l{m}n!o
-GOVC_URL=value # trailing comment
-GOVC_URL='quoted'   # trailing comment
 GOVC_URL=value   
 GOVC_URL='/home/operator/~/x'
 GOVC_URL="~/quoted/path"

@@ -38,13 +38,15 @@ type ShellFile struct {
 // Line grammar of the platform-catalog provision-shared-root-standard.md
 // ("File format"): an unquoted value has no spaces, shell characters, quotes
 // or `~`; a single-quoted value has no `'`; a double-quoted value has no
-// $ ` \ or ". An assignment may be followed by whitespace and a comment,
-// which the shell ignores when the file is sourced.
+// $ ` \ or ". A comment is a line of its own: nothing may follow the value
+// except whitespace, so `KEY=value # note` is refused.
 var (
 	blankOrComment = regexp.MustCompile(`^\s*(#.*)?$`)
 	assignmentLine = regexp.MustCompile("^\\s*(?:export\\s+)?([A-Za-z_][A-Za-z0-9_]*)=" +
 		"('[^']*'|\"[^\"$`\\\\]*\"|[^\\s'\"$`;&|<>()\\\\#~]*)" +
-		"(?:\\s+#.*)?\\s*$")
+		"\\s*$")
+	trailingComment = regexp.MustCompile("^\\s*(?:export\\s+)?[A-Za-z_][A-Za-z0-9_]*=" +
+		"('[^']*'|\"[^\"$`\\\\]*\"|[^\\s'\"$`;&|<>()\\\\#~]*)\\s+#")
 	looseKey        = regexp.MustCompile(`^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)=`)
 	placeholderLine = regexp.MustCompile(`^\s*#\s*(?:export\s+)?([A-Z][A-Z0-9_]*)=`)
 )
@@ -72,6 +74,11 @@ func ParseShellFile(file string, kind FileKind, content []byte) (ShellFile, erro
 			continue
 		}
 		m := assignmentLine.FindStringSubmatch(line)
+		if m == nil && trailingComment.MatchString(line) {
+			problems = append(problems, Problem{File: file, Line: n, Key: keyOf(line),
+				Msg: "a comment goes on its own line, not after the value"})
+			continue
+		}
 		if m == nil {
 			problems = append(problems, Problem{File: file, Line: n, Key: keyOf(line),
 				Msg: "only KEY=value lines with a literal value are allowed (no declare, printf -v, functions, commands, $ or ` expansion, unquoted ~)"})

@@ -1,0 +1,4 @@
+GOVC_URL=value # trailing comment
+GOVC_URL='quoted'   # trailing comment
+export GOVC_URL="quoted" #note
+GOVC_URL= # empty value then comment

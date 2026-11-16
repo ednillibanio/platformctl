@@ -95,8 +95,16 @@ may only assign literal values. A line is a comment, a blank line, or
 - `'single quoted'`;
 - `"double quoted"` without `$`, backquote, `\` or `"`.
 
-No `$(...)`, no variables, no functions, no unquoted `~`. Each key is set
-once, in the file its prefix belongs to. A key that is still commented
+No `$(...)`, no variables, no functions, no unquoted `~`, and nothing
+after the value: a comment goes on its own line, so write
+
+```bash
+# vCenter of the lab
+GOVC_URL=https://vcenter.example.test/sdk
+```
+
+and not `GOVC_URL=https://vcenter.example.test/sdk # vCenter of the lab`.
+Each key is set once, in the file its prefix belongs to. A key that is still commented
 (`# GOVC_URL=`) is a placeholder: for a consumer it is missing.
 
 Secrets are never in these files. Each secret is its own file under
