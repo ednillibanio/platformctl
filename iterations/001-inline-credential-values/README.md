@@ -1,6 +1,6 @@
 # Iteração: Suportar valor inline em credentials
 
-Status: `doing`
+Status: `done`
 
 ## Objetivo
 
@@ -53,4 +53,7 @@ cd container && ./lab.sh up
 
 ## Resultado
 
-Pendente — fechar após integração do PR em `lab`.
+Concluída. As duas etapas estão `done`; o PR #11
+(`feat/inline-credential-values`) foi integrado em `lab` em 2026-08-01
+(`0bb6abc`) e a mudança saiu na `v0.1.0`. Registro fechado em 2026-11-17
+(#53), sem trabalho pendente.

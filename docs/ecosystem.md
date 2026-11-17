@@ -26,9 +26,12 @@ provision-* loader <-- reads <root>/<env>/
 Adoption is in progress. Each consumer has an adaptation issue:
 al-rr/provision-semaphoreui#86 and #88 (`shared-root.yaml`, consumer name,
 `gen-credential` replaced by `platformctl credential`, own identity),
-al-rr/provision-nexus3#100 and #101, al-rr/provision-template#13,
-ednillibanio/platform-labs#128 (test controllers) and
-al-rr/platform-modules#337 (install `platformctl` on controllers).
+al-rr/provision-nexus3#100 and #101, al-rr/provision-template#13
+and ednillibanio/platform-labs#128 (test controllers). The controllers
+prepared by `al-rr/platform-modules` already install the pinned
+`platformctl` release on Linux and macOS (al-rr/platform-modules#337,
+done); its operator guide for the shared root on a controller is
+[Provision Shared Root Guide](https://github.com/al-rr/platform-modules/blob/lab/docs/en/provision-shared-root-guide.md).
 [`al-rr/provision-vsphere-platform`](https://github.com/al-rr/provision-vsphere-platform),
 which owns the vCenter access of the platform consumers, is the first
 repository with a committed `shared-root.yaml` (its target secrets under
