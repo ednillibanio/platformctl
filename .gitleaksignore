@@ -1,0 +1,5 @@
+# Findings gitleaks reports in the history that are not secrets (#57).
+# docs/usage.md: example doctor output, the SHA256 fingerprint of a public
+# key generated in a scratch root.
+a909106cace5fcca226960678c07a70e2ee48412:docs/usage.md:generic-api-key:131
+a909106cace5fcca226960678c07a70e2ee48412:docs/usage.md:generic-api-key:139

@@ -108,7 +108,7 @@ From the example above, `bootstrap-config` writes this into `vars.sh`:
 # TARGET_FOLDER=
 ```
 
-The operator writes the value after `=` and removes the leading `# `. So
+The operator writes the value after `=` and removes the leading `#` and the space after it. So
 write descriptions that let an operator fill the value without reading the
 repository's code: what it is, and its form when that is not obvious.
 

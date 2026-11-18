@@ -65,7 +65,7 @@ fechado manualmente, branch rebaseada em `origin/lab` atualizado.
 
 Comandos executados dentro do `container/lab.sh`:
 
-```
+```bash
 platformctl init
 platformctl environment init prod
 platformctl validate --env prod        # "Environment "prod" is valid"

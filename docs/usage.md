@@ -76,7 +76,7 @@ per declared key:
 # GOVC_URL=
 ```
 
-Write the value after the `=` and remove the leading `# `. Only literal
+Write the value after the `=` and remove the leading `#` and the space after it. Only literal
 values are allowed: unquoted without spaces or shell characters,
 `'single quoted'`, or `"double quoted"` without `$`, backquote, `\` or `"`.
 No `$(...)`, no variables, no unquoted `~`.

@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
-
-# Vagrant-like lifecycle commands for the platformctl container lab.
-# Every command is repeatable and idempotent: `up` re-runs the same
-# provisioning script each time (fast on a warm lab-home volume), and
-# `destroy` always returns to a clean slate.
+# @file container/lab.sh
+# @brief Vagrant-like lifecycle commands for the platformctl container lab.
+# @description
+#   Every command is repeatable and idempotent: `up` re-runs the same
+#   provisioning script each time (fast on a warm lab-home volume), and
+#   `destroy` always returns to a clean slate. Run without arguments for the
+#   list of commands.
+# @example
+#   cd container && ./lab.sh up && ./lab.sh status && ./lab.sh destroy
+# @arg $1 string Command: up, status, render, ssh or destroy.
 
 set -Eeuo pipefail
 

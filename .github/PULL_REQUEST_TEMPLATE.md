@@ -1,6 +1,7 @@
 ## Summary
 
-<!-- What changed and why? Keep this to 2-5 concrete bullets. -->
+<!-- What changed and why? Keep this to 2-5 concrete bullets. The title
+follows Conventional Commits (it becomes the squash commit message). -->
 
 -
 
@@ -20,14 +21,14 @@ or write "No user-visible behavior change". -->
 
 Run the checks relevant to the change and remove items that do not apply.
 
+- [ ] `pre-commit run --all-files` (repository checks, same as the CI job `higiene`)
 - [ ] `./scripts/go.sh vet ./...`
 - [ ] `./scripts/go.sh test ./...`
 - [ ] `./scripts/go.sh build -o bin/platformctl ./cmd/platformctl`
 - [ ] `bash vagrant/tests/test-vagrantfile-contract.sh`
 - [ ] `bash container/tests/test-compose-contract.sh`
 - [ ] Example `validate`/`render` smoke test
-- [ ] Relative Markdown links and referenced paths checked
-- [ ] `git diff --check`
+- [ ] Repository paths named in the text exist (pre-commit checks only links)
 
 ## Security and operations
 

@@ -43,7 +43,16 @@ bash vagrant/tests/test-vagrantfile-contract.sh
 bash container/tests/test-compose-contract.sh
 ```
 
-CI (`.github/workflows/ci.yml`) runs on ubuntu/macos/windows: bootstrap, then
+Repository checks (pre-commit; install once per clone, run before every push;
+CI runs the same configuration in the `higiene` job, see `docs/development.md`):
+
+```bash
+pre-commit install
+pre-commit run --all-files
+```
+
+CI (`.github/workflows/ci.yml`) also has `higiene` and a full-history
+`gitleaks` job. Its Go jobs run on ubuntu/macos/windows: bootstrap, then
 `vet`, `test ./...`, and `build ./cmd/platformctl`. A separate Linux job runs
 both static lab contracts and then the full container lab (`container/lab.sh`).
 
@@ -123,7 +132,7 @@ sequence, and rendering stops immediately if any stage fails:
 
 ### Config home layout
 
-```
+```text
 <PLATFORMCTL_HOME>/
 ├── defaults.yaml
 └── environments/<env>/

@@ -1,0 +1,101 @@
+# Repository checks (platform-catalog docs/standards/pre-commit-standard.md).
+# Model: the .pre-commit-config.yaml of al-rr/provision-template.
+#
+# The local hook and the CI job `higiene` run this same configuration:
+#   pre-commit run --all-files --show-diff-on-failure
+#
+# Install once per clone: pre-commit install
+# Container hooks (ShellCheck, lychee) need Docker, Podman with
+# podman-docker, or Colima running. On macOS, keep the clone under $HOME:
+# the default Colima profile shares only the home directory.
+# Go checks (build, vet, tests) are not hooks: they stay in the Go jobs of
+# .github/workflows/ci.yml (docs/development.md).
+# Every exception below has its reason in #57.
+
+default_install_hook_types: [pre-commit, commit-msg]
+default_stages: [pre-commit]
+minimum_pre_commit_version: "3.2.0"
+
+repos:
+  # --- Every repository ----------------------------------------------------
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: detect-private-key
+        # The OpenSSH key parser holds the key header, not a key (#57).
+        exclude: ^internal/sharedroot/keys\.go$
+      - id: check-case-conflict
+
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
+    rev: 3.11.1
+    hooks:
+      - id: editorconfig-checker
+        alias: ec
+        # Test fixtures are input byte for byte, for example trailing
+        # spaces the shell-file parser must accept (#57).
+        exclude: (^|/)testdata/
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.5.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [feat, fix, docs, refactor, test, ci, build, chore]
+
+  # Shared hooks; their contract is the ci-workflows README.
+  - repo: https://github.com/assembleiarr/ci-workflows
+    rev: v0.2.0
+    hooks:
+      - id: sem-env
+      - id: check-exec-bit
+      - id: check-shdoc
+
+  # --- *.md ----------------------------------------------------------------
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.23.3
+    hooks:
+      - id: markdownlint-cli2
+
+  - repo: local
+    hooks:
+      - id: lychee
+        name: relative links (lychee --offline)
+        language: docker_image
+        entry: lycheeverse/lychee:0.24.2 --offline --no-progress --include-fragments
+        types: [markdown]
+
+  # --- *.sh ----------------------------------------------------------------
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.11.0
+    hooks:
+      - id: shellcheck
+        args: [-x]
+
+  - repo: local
+    hooks:
+      - id: shell-syntax
+        name: shell syntax (sh -n / bash -n, by shebang)
+        language: system
+        entry: sh -c 'rc=0; for f in "$@"; do case "$(head -n 1 "$f")" in *bash*) bash -n "$f" || rc=1 ;; *) sh -n "$f" || rc=1 ;; esac; done; exit "$rc"' --
+        types: [shell]
+
+  # --- *.yaml, *.yml -------------------------------------------------------
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        args: [--strict]
+
+  # --- .github/workflows/ --------------------------------------------------
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
