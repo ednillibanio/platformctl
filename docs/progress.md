@@ -47,6 +47,9 @@ example.
 The workflow in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) is
 configured to run on pushes and pull requests:
 
+- `higiene`: the repository checks of `.pre-commit-config.yaml`
+  ([Development: Repository checks](development.md#repository-checks));
+- `gitleaks` over the whole history;
 - bootstrap, vet, test, and build on Ubuntu, macOS, and Windows with Go 1.26.x;
 - static Vagrant and container contract tests on Ubuntu;
 - full Docker Compose lab build/run/status/cleanup on Ubuntu.

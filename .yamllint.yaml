@@ -1,0 +1,21 @@
+# yamllint configuration (platform-catalog docs/standards/pre-commit-standard.md).
+# Same rules as the model in al-rr/provision-template.
+extends: default
+
+rules:
+  # Compose and workflow files do not start with "---" consistently.
+  document-start: disable
+  # Workflow commands are often long; keep the limit high.
+  line-length:
+    max: 160
+  # "on:" in GitHub Actions workflows is a key, not a boolean.
+  truthy:
+    check-keys: false
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: false
+  braces:
+    max-spaces-inside: 1
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true

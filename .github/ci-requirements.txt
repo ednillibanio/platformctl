@@ -1,0 +1,3 @@
+# Python tools for CI (job higiene). Python version: .python-version.
+# Bump them in a reviewed pull request, never float them.
+pre-commit==4.7.0

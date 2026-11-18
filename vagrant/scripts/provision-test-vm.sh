@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
-
-# Provision and verify the disposable platformctl test VM.
+# @file vagrant/scripts/provision-test-vm.sh
+# @brief Provision and verify the disposable platformctl test VM.
+# @description
+#   Shared by the Vagrant and container labs: bootstrap, vet, test, build,
+#   example validation and YAML/JSON render, with toolchain, caches and
+#   artifacts outside the mounted checkout. Writes its progress to the status
+#   file under PLATFORMCTL_LAB_STATE_DIR (docs/development.md, "Full
+#   disposable labs").
+# @example
+#   PLATFORMCTL_PROJECT_ROOT=/home/vagrant/platformctl vagrant/scripts/provision-test-vm.sh
 
 set -Eeuo pipefail
 

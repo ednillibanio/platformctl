@@ -177,5 +177,8 @@ container and Vagrant workflows and to understand their isolation boundaries.
 integration branch, merge validated topic work into `lab`, then promote `lab`
 to `main` through a reviewed pull request. Go commands must run through
 `scripts/go.sh` or `scripts/go.ps1`; the wrappers keep toolchains and caches
-under ignored project directories. See [Development](docs/development.md) and
+under ignored project directories. Install the repository checks once per
+clone with `pre-commit install` and run `pre-commit run --all-files` before a
+push; CI runs the same checks in the `higiene` job. See
+[Development](docs/development.md) and
 the controlled iteration process in [`iterations/`](iterations/README.md).

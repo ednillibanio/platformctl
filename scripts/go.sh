@@ -1,4 +1,14 @@
 #!/usr/bin/env bash
+# @file scripts/go.sh
+# @brief Run Go with the repository's toolchain and caches.
+# @description
+#   Prefers the bootstrapped toolchain in .tools/, then a go on PATH, and
+#   keeps GOCACHE and GOPATH under .cache/ of PLATFORMCTL_DEV_ROOT unless they
+#   are set. Every argument goes to go unchanged.
+# @example
+#   ./scripts/go.sh test ./...
+# @arg $@ string Arguments passed to go.
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

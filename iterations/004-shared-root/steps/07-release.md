@@ -33,8 +33,8 @@ actionlint .github/workflows/*.yml
 
 ## Resultado
 
-Implementado e aprovado pelo operador (2026-11-12). O run de `release` do PR
-#43 foi o teste sem publicar: `build` ok, `publish` pulado, artefato
+Implementado e aprovado pelo operador (2026-11-12). O run de `release` do
+PR #43 foi o teste sem publicar: `build` ok, `publish` pulado, artefato
 `platformctl-dev-d3b8710c71f9`.
 
 - `platformctl --version` (`platformctl version <v>`; `dev` em build de

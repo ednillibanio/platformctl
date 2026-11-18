@@ -8,6 +8,49 @@ permissions:
   contents: read
 
 jobs:
+  # Repository checks: the same .pre-commit-config.yaml as the local hook
+  # (platform-catalog docs/standards/pre-commit-standard.md). Go checks
+  # stay in the jobs below.
+  higiene:
+    name: higiene
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+      - name: Install pre-commit (pinned in .github/ci-requirements.txt)
+        run: python -m pip install --disable-pip-version-check -r .github/ci-requirements.txt
+      - name: Cache pre-commit environments
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+      - name: pre-commit run --all-files
+        run: pre-commit run --all-files --show-diff-on-failure
+
+  # The whole history; the hook scans only the commit. Known non-secrets
+  # are listed in .gitleaksignore (#57).
+  gitleaks:
+    name: gitleaks
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks
+        env:
+          GITLEAKS_VERSION: 8.30.1
+        run: |
+          curl -sSfL -o gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf gitleaks.tar.gz gitleaks
+          sudo install -m 0755 gitleaks /usr/local/bin/gitleaks
+      - name: gitleaks detect (full history)
+        run: gitleaks detect --source . --no-banner --redact
+
   test:
     strategy:
       matrix:

@@ -34,6 +34,12 @@ That document is normative; this file only records what is specific to
   and is exercised in the disposable `container/` or `vagrant/` labs rather
   than on the operator host. See [Development](docs/development.md) for the
   commands, static lab contracts, and CI.
+- **Repository checks:** install the hooks once per clone with
+  `pre-commit install` and run `pre-commit run --all-files` before every
+  push; the CI job `higiene` runs the same `.pre-commit-config.yaml`
+  (platform-catalog `docs/standards/pre-commit-standard.md`). Commit
+  messages and pull request titles follow Conventional Commits; see
+  [Repository checks](docs/development.md#repository-checks).
 - **Language:** code, CLI help, errors, logs, and `docs/` are in English;
   files under `iterations/` are in Portuguese.
 - **Cross-repository programs:** when work spans several repositories, the

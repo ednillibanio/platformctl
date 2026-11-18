@@ -1,0 +1,31 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.sh]
+indent_size = 2
+
+# gofmt owns Go layout (tabs). Indentation is not checked here: spaces
+# inside raw string literals are valid Go (#57; gofmt in CI is #56).
+[*.go]
+indent_style = unset
+indent_size = unset
+
+[go.{mod,sum}]
+indent_style = tab
+indent_size = unset
+
+[*.ps1]
+indent_size = 4
+
+# Markdown indentation (numbered list continuation lines) is checked by
+# markdownlint, not editorconfig-checker.
+[*.md]
+indent_style = unset
+indent_size = unset
