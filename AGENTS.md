@@ -67,6 +67,12 @@ Keep elsewhere:
 - Tests and examples use a scratch root (`--config-dir`,
   `ASSEMBLEIARR_CONFIG_DIR`, `PLATFORMCTL_HOME`), never the operator's real
   trees.
+- Install the repository checks once per clone with `pre-commit install`
+  (hooks for the `pre-commit` and `commit-msg` stages), and run
+  `pre-commit run --all-files` before every push; CI runs the same
+  configuration in the `higiene` job. Never use `git commit --no-verify` to
+  get past a check. See
+  [Development: Repository checks](docs/development.md#repository-checks).
 - Do not commit secrets, generated binaries (`bin/`), caches (`.cache/`,
   `.tools/`) or agent records (`.agent-runs/`).
 - Use `kebab-case` for Markdown file names.

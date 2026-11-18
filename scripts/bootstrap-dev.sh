@@ -1,4 +1,14 @@
 #!/usr/bin/env bash
+# @file scripts/bootstrap-dev.sh
+# @brief Prepare the Go development toolchain of platformctl.
+# @description
+#   Uses an installed Go with minor version 1.25 or newer; otherwise downloads
+#   the pinned Go archive into .tools/ under PLATFORMCTL_DEV_ROOT (default:
+#   the repository root) and verifies its SHA-256 checksum. Ends with
+#   "[PASS] Development environment is ready." (docs/development.md).
+# @example
+#   ./scripts/bootstrap-dev.sh
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -50,6 +50,51 @@ Bootstrap from the repository root:
 The bootstrap may access `go.dev` and the Go module proxy. Successful output
 ends with `[PASS] Development environment is ready.`
 
+## Repository checks
+
+The repository checks follow the platform-catalog
+`docs/standards/pre-commit-standard.md`. One
+[`.pre-commit-config.yaml`](../.pre-commit-config.yaml) runs as the local
+hook and as the CI job `higiene`: secrets (gitleaks), merge conflict
+markers, large files, private keys, case conflicts, the
+[`.editorconfig`](../.editorconfig) format, `.env` files (`sem-env`),
+Conventional Commits messages (`commit-msg` stage, local only), Markdown
+style and relative links, shell scripts (syntax, ShellCheck, executable bit,
+shdoc header), YAML (`yamllint --strict`) and workflows (actionlint). The
+shared hooks come from
+[`assembleiarr/ci-workflows`](https://github.com/assembleiarr/ci-workflows),
+pinned by tag. Go checks are not hooks: they stay in the Go jobs of [CI](#ci).
+
+Install pre-commit once per machine (any version at or above the
+`minimum_pre_commit_version` of the configuration; CI pins the one in
+[`.github/ci-requirements.txt`](../.github/ci-requirements.txt)), then the
+hooks once per clone:
+
+```bash
+pipx install pre-commit   # or the pre-commit a platform-modules controller installs
+pre-commit install        # pre-commit and commit-msg hooks
+pre-commit run --all-files
+```
+
+Run `pre-commit run --all-files` before every push. The ShellCheck and
+lychee hooks run in containers, so they need a `docker` command that reaches
+a running engine (Docker, Podman with `podman-docker`, or Colima on macOS
+with the clone under `$HOME`). `git commit --no-verify` skips the hook, not
+CI.
+
+Every shell entrypoint (mode `100755`) starts with a shdoc header: `@file`,
+`@brief`, `@description` and `@example`. `scripts/release-build.sh` and
+`scripts/e2e-shared-root.sh` print their `@description` block as `--help`.
+
+The exceptions, each with its reason in
+[#57](https://github.com/ednillibanio/platformctl/issues/57):
+`detect-private-key` skips `internal/sharedroot/keys.go` (the key parser),
+editorconfig-checker skips `testdata/` (byte-exact fixtures), `.editorconfig`
+does not check the indentation of `*.go` (gofmt owns it; a gofmt check in CI
+is [#56](https://github.com/ednillibanio/platformctl/issues/56)), and
+[`.gitleaksignore`](../.gitleaksignore) lists findings in the history that
+are not secrets.
+
 ## Build and test
 
 Linux and macOS:
@@ -206,10 +251,14 @@ running them.
 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs on pushes and
 pull requests:
 
-1. Ubuntu, macOS, and Windows jobs bootstrap, vet, test, and build with Go
+1. The `higiene` job runs `pre-commit run --all-files --show-diff-on-failure`
+   with the pinned pre-commit (see [Repository checks](#repository-checks)).
+2. The `gitleaks` job scans the whole history (`fetch-depth: 0`); the hook
+   scans only the commit.
+3. Ubuntu, macOS, and Windows jobs bootstrap, vet, test, and build with Go
    1.26.x.
-2. A Linux job runs both static lab contracts.
-3. The same Linux job builds and runs the container lab, inspects its persisted
+4. A Linux job runs both static lab contracts.
+5. The same Linux job builds and runs the container lab, inspects its persisted
    status, and destroys it even after failure.
 
 CI does not run a Vagrant VM because that requires an external hypervisor and
@@ -241,9 +290,10 @@ schemas. At minimum:
 ./bin/platformctl --help
 ./bin/platformctl render --help
 ./scripts/go.sh test ./...
-git diff --check
+pre-commit run --all-files
 ```
 
-Also verify that every relative Markdown link and repository path resolves and
-that examples contain no real tokens, passwords, keys, internal production
+`pre-commit` checks Markdown style and relative links. Also verify that every
+repository path named in the text exists and that examples contain no real
+tokens, passwords, keys, internal production
 addresses, or unsupported behavior claims.

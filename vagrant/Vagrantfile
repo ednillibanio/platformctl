@@ -3,13 +3,14 @@
 require 'yaml'
 
 CONFIG_PATH = File.expand_path(ENV.fetch('PLATFORMCTL_VAGRANT_CONFIG', 'config.local.yaml'), __dir__)
-LOCAL_CONFIG = if File.file?(CONFIG_PATH)
-                 parsed = YAML.safe_load(File.read(CONFIG_PATH), permitted_classes: [], aliases: false)
-                 abort("#{CONFIG_PATH} must contain a YAML mapping.") unless parsed.nil? || parsed.is_a?(Hash)
-                 parsed || {}
-               else
-                 {}
-               end.freeze
+LOCAL_CONFIG =
+  if File.file?(CONFIG_PATH)
+    parsed = YAML.safe_load(File.read(CONFIG_PATH), permitted_classes: [], aliases: false)
+    abort("#{CONFIG_PATH} must contain a YAML mapping.") unless parsed.nil? || parsed.is_a?(Hash)
+    parsed || {}
+  else
+    {}
+  end.freeze
 
 ALLOWED_CONFIG_KEYS = %w[box memory cpus provider ssh_port].freeze
 unknown_config_keys = LOCAL_CONFIG.keys.map(&:to_s) - ALLOWED_CONFIG_KEYS
@@ -45,7 +46,7 @@ Vagrant.configure('2') do |config|
     machine.vm.synced_folder '.', '/vagrant', disabled: true
     machine.vm.synced_folder PROJECT_ROOT, '/home/vagrant/platformctl'
     machine.vm.network 'forwarded_port', guest: 22, host: SSH_PORT,
-                       host_ip: '127.0.0.1', auto_correct: false, id: 'ssh'
+      host_ip: '127.0.0.1', auto_correct: false, id: 'ssh'
 
     machine.vm.provider 'virtualbox' do |provider|
       provider.memory = VM_MEMORY
@@ -58,8 +59,8 @@ Vagrant.configure('2') do |config|
     end
 
     machine.vm.provision 'platformctl-test-suite',
-                         type: 'shell',
-                         privileged: false,
-                         path: 'scripts/provision-test-vm.sh'
+      type: 'shell',
+      privileged: false,
+      path: 'scripts/provision-test-vm.sh'
   end
 end

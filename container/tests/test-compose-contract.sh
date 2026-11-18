@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
-
-# Verify container lab lifecycle and isolation invariants without requiring Docker.
+# @file container/tests/test-compose-contract.sh
+# @brief Verify container lab lifecycle and isolation invariants.
+# @description
+#   Static checks of container/docker-compose.yml, the Dockerfile and lab.sh;
+#   does not need Docker. Prints [FAIL] and exits 1 on the first broken
+#   contract.
+# @example
+#   bash container/tests/test-compose-contract.sh
 
 set -euo pipefail
 

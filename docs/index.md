@@ -90,6 +90,7 @@ authoritative. The main evidence locations are:
 | Merge behavior | [`internal/merge/merge.go`](../internal/merge/merge.go) |
 | Render, redaction, and encoding | [`internal/render/render.go`](../internal/render/render.go) |
 | Platform configuration home | [`internal/platformhome/home.go`](../internal/platformhome/home.go) |
+| Repository checks (pre-commit) | [`.pre-commit-config.yaml`](../.pre-commit-config.yaml) |
 | CI checks | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) |
 
 ## Related repositories

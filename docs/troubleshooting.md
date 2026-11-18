@@ -209,7 +209,7 @@ problem stays until then.
 ### `required key is still a placeholder`
 
 The line is still `# KEY=`. Write the value after the `=` and remove the
-leading `# `.
+leading `#` and the space after it.
 
 ### `only KEY=value lines with a literal value are allowed`
 
@@ -251,7 +251,7 @@ directory and import the pair with `--automation-key-import -`.
 ### `--automation-key-import -` rejects the key
 
 Standard input must hold exactly one unencrypted ed25519 OpenSSH private key
-(`BEGIN OPENSSH PRIVATE KEY`). A key with a passphrase, another key type, or
+(the default format of `ssh-keygen -t ed25519`). A key with a passphrase, another key type, or
 extra text is refused. Pipe the file itself, for example
 `ssh first-controller cat .config/assembleiarr/lab/credentials/automation/ssh_ed25519`.
 
@@ -278,6 +278,37 @@ Do not bypass checksum verification. Remove the incomplete ignored toolchain if
 necessary, confirm the requested Go version and platform in the bootstrap
 script, and retry from a trusted network. If upstream artifacts changed or the
 pinned checksum is wrong, treat that as a repository maintenance issue.
+
+## Repository checks
+
+See [Development: Repository checks](development.md#repository-checks) for
+what `pre-commit` runs.
+
+### `failed to connect to the docker API` in the ShellCheck or lychee hook
+
+These two hooks run in containers. Start the engine (Docker, Podman with
+`podman-docker`, or Colima on macOS) and check that `docker info` answers.
+On macOS, `docker context show` must print `colima`; the platform-catalog
+`docs/standards/pre-commit-standard.md` ("Local Hook") lists the checks in
+order.
+
+### `not found` or `openBinaryFile: does not exist` in a container hook on macOS
+
+The default Colima profile shares only your home directory with its VM. Keep
+the clone under `$HOME`.
+
+### `cabeçalho shdoc sem @file com valor` (or `@brief`, `@description`, `@example`)
+
+A new or changed executable shell script (mode `100755`) needs a shdoc
+header after the shebang. Copy the header of `scripts/go.sh` and fill in
+`@file`, `@brief`, `@description` and `@example`. A sourced library is not
+executable and needs no header (`check-exec-bit` checks the mode).
+
+### The commit message is refused
+
+The `commit-msg` hook accepts Conventional Commits with the types `feat`,
+`fix`, `docs`, `refactor`, `test`, `ci`, `build` and `chore`, for example
+`docs(usage): explain doctor exit codes`. Fix the message and commit again.
 
 ## Disposable labs
 

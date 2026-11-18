@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
-
-# Verify lifecycle and isolation invariants without requiring Vagrant.
+# @file vagrant/tests/test-vagrantfile-contract.sh
+# @brief Verify Vagrant lab lifecycle and isolation invariants.
+# @description
+#   Static checks of vagrant/Vagrantfile and vagrant/scripts/provision-test-vm.sh;
+#   does not need Vagrant. Prints [FAIL] and exits 1 on the first broken
+#   contract.
+# @example
+#   bash vagrant/tests/test-vagrantfile-contract.sh
 
 set -euo pipefail
 

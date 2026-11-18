@@ -284,7 +284,7 @@ plus `targets/<t>/hosts/<c>.sh` for each consumer and target.
 - With declarations, `vars.sh` and each hosts file get a commented
   placeholder, `# KEY=`, for exactly the declared `target` and `host` keys,
   preceded by the key's description. To set a key, write its value after the
-  `=` and remove the leading `# `.
+  `=` and remove the leading `#` and the space after it.
 - Without a declaration, a generic skeleton is written and a warning is
   printed. An invalid declaration is an error, and nothing is written.
 - No value is written: the command never prompts for or accepts a value.
