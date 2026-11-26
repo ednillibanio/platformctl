@@ -16,6 +16,7 @@ the operator host (see "Disposable lab environments" and "Workflow" below).
 ./scripts/go.sh test ./internal/render/...                  # test a single package
 ./scripts/go.sh test ./internal/render/ -run TestResolve     # run a single test
 ./scripts/go.sh vet ./...
+./scripts/gofmt-check.sh                                    # fails on a non-gofmt Go file (CI runs it on Linux)
 ./scripts/go.sh build -o bin/platformctl ./cmd/platformctl
 ```
 
@@ -53,7 +54,8 @@ pre-commit run --all-files
 
 CI (`.github/workflows/ci.yml`) also has `higiene` and a full-history
 `gitleaks` job. Its Go jobs run on ubuntu/macos/windows: bootstrap, then
-`vet`, `test ./...`, and `build ./cmd/platformctl`. A separate Linux job runs
+`vet`, `test ./...`, and `build ./cmd/platformctl`; the ubuntu job first runs
+`scripts/gofmt-check.sh`. A separate Linux job runs
 both static lab contracts and then the full container lab (`container/lab.sh`).
 
 Manual CLI smoke test — use the committed, secret-free fixture so the real
