@@ -90,8 +90,8 @@ The exceptions, each with its reason in
 [#57](https://github.com/ednillibanio/platformctl/issues/57):
 `detect-private-key` skips `internal/sharedroot/keys.go` (the key parser),
 editorconfig-checker skips `testdata/` (byte-exact fixtures), `.editorconfig`
-does not check the indentation of `*.go` (gofmt owns it; a gofmt check in CI
-is [#56](https://github.com/ednillibanio/platformctl/issues/56)), and
+does not check the indentation of `*.go` (gofmt owns it, see
+[Go formatting](#go-formatting)), and
 [`.gitleaksignore`](../.gitleaksignore) lists findings in the history that
 are not secrets.
 
@@ -127,6 +127,27 @@ schemas, the committed example, and the shared-root commands
 parsers, golden skeletons, concurrency, and one test per `doctor` check).
 Several shared-root tests check file ownership and modes, so run the suite
 both as a regular user and as root before a pull request.
+
+## Go formatting
+
+`scripts/gofmt-check.sh` runs `gofmt -l cmd internal schemas` with the
+toolchain that `scripts/go.sh` selects, lists every Go file that is not
+gofmt-formatted and exits 1 if there is one; a Go syntax error also fails it
+(gofmt prints the error and the script exits 2). It never rewrites a file and
+needs the toolchain from [Toolchain](#toolchain). CI runs it in the Ubuntu Go
+job
+([#56](https://github.com/ednillibanio/platformctl/issues/56)), so run it
+before a push that changes Go code:
+
+```bash
+./scripts/gofmt-check.sh
+```
+
+Success prints `[PASS] gofmt: all Go files are formatted.` To fix a listed
+file, run `gofmt -w <file>` with the `gofmt` of the same toolchain
+(`"$(./scripts/go.sh env GOROOT)/bin/gofmt" -w <file>`). On Windows, run
+`gofmt -l cmd internal schemas` with the `gofmt.exe` in the `bin\`
+directory of the path that `.\scripts\go.ps1 env GOROOT` prints.
 
 ## Shared-root end-to-end check
 
@@ -256,7 +277,8 @@ pull requests:
 2. The `gitleaks` job scans the whole history (`fetch-depth: 0`); the hook
    scans only the commit.
 3. Ubuntu, macOS, and Windows jobs bootstrap, vet, test, and build with Go
-   1.26.x.
+   1.26.x. The Ubuntu job first runs `scripts/gofmt-check.sh` (see
+   [Go formatting](#go-formatting)).
 4. A Linux job runs both static lab contracts.
 5. The same Linux job builds and runs the container lab, inspects its persisted
    status, and destroys it even after failure.

@@ -61,6 +61,8 @@ Keep elsewhere:
 - Run Go only through `scripts/go.sh` or `scripts/go.ps1`, in the pinned Go
   container or a lab, never on the operator host. Run the tests as a regular
   user and as root, and `vet` with `GOOS=linux`, `darwin` and `windows`.
+  Run `./scripts/gofmt-check.sh` before a push that changes Go code; CI
+  fails on a file that is not gofmt-formatted.
 - Shared-root commands must never overwrite, truncate, move or delete an
   existing file, never follow a symbolic link inside the tree, and never
   print or log a secret value or a hash of one.

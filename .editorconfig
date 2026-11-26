@@ -12,7 +12,8 @@ indent_size = 2
 indent_size = 2
 
 # gofmt owns Go layout (tabs). Indentation is not checked here: spaces
-# inside raw string literals are valid Go (#57; gofmt in CI is #56).
+# inside raw string literals are valid Go (#57); scripts/gofmt-check.sh
+# checks gofmt in CI (#56).
 [*.go]
 indent_style = unset
 indent_size = unset

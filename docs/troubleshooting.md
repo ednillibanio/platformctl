@@ -279,6 +279,18 @@ necessary, confirm the requested Go version and platform in the bootstrap
 script, and retry from a trusted network. If upstream artifacts changed or the
 pinned checksum is wrong, treat that as a repository maintenance issue.
 
+### `[FAIL] Not gofmt-formatted` in the CI step `gofmt`
+
+`scripts/gofmt-check.sh` lists the Go files that `gofmt` would change. Format
+each listed file with the same toolchain, then rerun the check:
+
+```bash
+"$(./scripts/go.sh env GOROOT)/bin/gofmt" -w <file>
+./scripts/gofmt-check.sh
+```
+
+See [Development: Go formatting](development.md#go-formatting).
+
 ## Repository checks
 
 See [Development: Repository checks](development.md#repository-checks) for
